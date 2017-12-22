@@ -1234,30 +1234,6 @@ void CoolAddParams( COOLPARAM *CoolParam, PRM prm ) {
 				"ssc","enable/disable Self Shielded Cooling = +ssc");
 	}
 	
-void CoolOutputArray( COOLPARAM *CoolParam, int cnt, int *type, char *suffix ) {
-#if 0
-	*type = OUT_NULL;
-
-	switch (cnt) {
-	case 0:
-		if (!CoolParam->bDoIonOutput) return;
-		*type = OUT_COOL_ARRAY0;
-		sprintf(suffix,".HI");
-		return;
-	case 1:
-		if (!CoolParam->bDoIonOutput) return;
-		*type = OUT_COOL_ARRAY1;
-		sprintf(suffix,".HeI");
-		return;
-	case 2:
-		if (!CoolParam->bDoIonOutput) return;
-		*type = OUT_COOL_ARRAY2;
-		sprintf(suffix,".HeII");
-		return;
-		}
-#endif
-	}
-
 /* Output Conversion Routines */
 
 double CoolEnergyToTemperature( COOL *Cool, COOLPARTICLE *cp, double E, double fMetal ) {

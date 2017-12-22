@@ -572,51 +572,6 @@ void CoolLogParams( COOLPARAM *CoolParam, LOGGER *lgr) {
 }
 #endif
 
-void CoolOutputArray( COOLPARAM *CoolParam, int cnt, int *type, char *suffix ) {
-#if 0
-    char *extensions[]= { "HI", "HII", "HeI", "HeII", "HeIII", "e",
-                          "HM", "H2I", "H2II",
-                          "DI", "DII", "HDI" };
-	*type = OUT_NULL;
-    if (!CoolParam->bDoIonOutput) return;
-
-/*
-#if (GRACKLE_PRIMORDIAL_CHEMISTRY_MAX<1)
-    float dummy;
-#endif
-#if (GRACKLE_PRIMORDIAL_CHEMISTRY_MAX>=1)
-    gr_float HI, HII, HeI, HeII, HeII, e;
-#if (GRACKLE_PRIMORDIAL_CHEMISTRY_MAX>=2)
-    gr_float HM, H2I, H2II;
-#if (GRACKLE_PRIMORDIAL_CHEMISTRY_MAX>=3)
-    gr_float DI, DII, HDI
-#endif
-#endif
-#endif
-*/
-	switch (cnt) {
-	case 11:
-    case 10:
-    case 9:
-		if (CoolParam->primordial_chemistry<3) return;
-    case 8:
-    case 7:
-    case 6:
-		if (CoolParam->primordial_chemistry<2) return;
-    case 5:
-    case 4:
-    case 3:
-    case 2:
-    case 1:
-    case 0:
-		if (CoolParam->primordial_chemistry<1) return;
-		*type = OUT_COOL_ARRAY0+cnt;
-		sprintf(suffix,extensions[cnt]);
-		return;
-	}
-#endif
-}
-
 double CoolCodeEnergyToTemperature( COOL *cl, COOLPARTICLE *cp, double E, double rho, double ZMetal ) {
     int one[]={1,1,1};
     int zero[]={0,0,0};

@@ -97,7 +97,6 @@ void CoolInitRatesTable( COOL *cl, COOLPARAM CoolParam);
 
 void CoolAddParams( COOLPARAM *CoolParam, PRM );
 void CoolLogParams( COOLPARAM *CoolParam, FILE *fp );
-void CoolOutputArray( COOLPARAM *CoolParam, int, int *, char * );
 
 // GRACKLE_PRIMORDIAL_CHEMISTRY_MAX >=1
 #define COOL_ARRAY0_EXT  "HI"

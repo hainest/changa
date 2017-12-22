@@ -270,7 +270,6 @@ int clJacobn( double x, const double y[], double dfdx[], double *dfdy, void *Dat
   
 void CoolAddParams( COOLPARAM *CoolParam, PRM );
 void CoolLogParams( COOLPARAM *CoolParam, FILE *fp );
-void CoolOutputArray( COOLPARAM *CoolParam, int, int *, char * );
 
 #define COOL_ARRAY0_EXT  "HI"
 double COOL_ARRAY0(COOL *cl_, COOLPARTICLE *cp,double aa);
