@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <math.h>
 #include <string.h>
-#include <assert.h>
+#include "charm.h"
 
 /*
  * Cooling code originally written by James Wadsley, McMaster
@@ -34,15 +34,14 @@ COOL *CoolInit( )
     {
     COOL *cl;
     cl = (COOL *) malloc(sizeof(COOL));
-    assert(cl!=NULL);
+    CkAssert(cl!=NULL);
 #ifdef CONFIG_BFLOAT_8
-    assert(sizeof(gr_float)==8);
+    CkAssert(sizeof(gr_float)==8);
 #else
 #ifdef CONFIG_BFLOAT_4
-    assert(sizeof(gr_float)==4);
+    CkAssert(sizeof(gr_float)==4);
 #else
-    fprintf(stderr,"Cooling Grackle: gr_float type not defined\n");
-    assert(0);
+    CkAbort("Cooling Grackle: gr_float type not defined");
 #endif
 #endif
     
@@ -59,9 +58,9 @@ clDerivsData *CoolDerivsInit(COOL *cl)
     clDerivsData *Data;
     double dEMin;
 
-    assert(cl != NULL);
+    CkAssert(cl != NULL);
     Data = malloc(sizeof(clDerivsData));
-    assert(Data != NULL);
+    CkAssert(Data != NULL);
     return Data;
     }
 
@@ -81,7 +80,7 @@ void CoolDerivsFinalize(clDerivsData *clData)
 void clInitConstants( COOL *cl, double dGmPerCcUnit, double dComovingGmPerCcUnit, 
 		      double dErgPerGmUnit, double dSecUnit, double dKpcUnit, COOLPARAM CoolParam) 
     {
-    assert(cl!=NULL);
+    CkAssert(cl!=NULL);
 	grackle_verbose = CoolParam.grackle_verbose;
 
     cl->my_units.comoving_coordinates = CoolParam.bComoving; // 1 if cosmological sim, 0 if not
@@ -100,16 +99,14 @@ void clInitConstants( COOL *cl, double dGmPerCcUnit, double dComovingGmPerCcUnit
 
     // Second, create a chemistry object for parameters and rate data.
     if (set_default_chemistry_parameters() == 0) {
-        fprintf(stderr, "Grackle Error in set_default_chemistry_parameters.\n");
-        assert(0);
+        CkAbort("Grackle Error in set_default_chemistry_parameters.");
         }
     
     cl->pgrackle_data->use_grackle = CoolParam.use_grackle;            // chemistry on
     cl->pgrackle_data->with_radiative_cooling = CoolParam.with_radiative_cooling; // cooling on
     cl->pgrackle_data->primordial_chemistry = CoolParam.primordial_chemistry;   // 0-3 molecular network with H, He, D
     if (CoolParam.primordial_chemistry > GRACKLE_PRIMORDIAL_CHEMISTRY_MAX) {
-        fprintf(stderr,"Must compile so that GRACKLE_PRIMORDIAL_CHEMISTRY_MAX >= primordial_chemistry parameter used\n");
-        assert(GRACKLE_PRIMORDIAL_CHEMISTRY_MAX >= CoolParam.primordial_chemistry);
+        CkAbort("Must compile so that GRACKLE_PRIMORDIAL_CHEMISTRY_MAX >= primordial_chemistry parameter used");
         };
     cl->pgrackle_data->metal_cooling = CoolParam.metal_cooling;          // metal cooling on
     cl->pgrackle_data->UVbackground = CoolParam.UVbackground;           // UV background on
@@ -122,8 +119,7 @@ void clInitConstants( COOL *cl, double dGmPerCcUnit, double dComovingGmPerCcUnit
         
         // Finally, initialize the chemistry object.
         if (initialize_chemistry_data(&cl->my_units, a_value) == 0) {
-            fprintf(stderr, "Grackle Error in initialize_chemistry_data.\n");
-            assert(0);
+            CkAbort("Grackle Error in initialize_chemistry_data.");
             }
         }
 
@@ -246,7 +242,7 @@ void CoolTableReadInfo( COOLPARAM *CoolParam, int cntTable, int *nTableColumns, 
 
 
 void CoolTableRead( COOL *Cool, int nData, void *vData)  {
-    assert(0);
+    CkAbort("CoolTableRead not implemented for grackle cooling.")
 }
 
 void CoolInitRatesTable( COOL *cl, COOLPARAM CoolParam ) {
@@ -337,14 +333,16 @@ void CoolInitEnergyAndParticleData( COOL *cl, COOLPARTICLE *cp, double *E, doubl
         Tnew = CoolCodeEnergyToTemperature( cl, cp, *E, dDensity, ZMetal );
         *E = *E*dTemp/Tnew; 
         }
-    assert(its<20);
+    if(its<20) {
+    	CkAbort("Temperature conversion unable to converge in grackle cooling.");
+    }
 //    printf("dTemp %g (K) Tnew %g (K) Energy %g (erg/g)  mu %g \n",dTemp,Tnew,*E*cl->dErgPerGmUnit,Tnew/dTemp*1.2);
     }
 
 
 void CoolIntegrateEnergy(COOL *cl, clDerivsData *clData, COOLPARTICLE *cp, double *E,
 			 double ExternalHeat, double rho, double ZMetal, double *rp, double tStep ) {
-    assert(0);
+    CkAbort("CoolIntegrateEnergy not implemented for grackle cooling.");
     }
 
 void CoolIntegrateEnergyCode(COOL *cl, clDerivsData *clData, COOLPARTICLE *cp, double *E,
@@ -379,8 +377,7 @@ void CoolIntegrateEnergyCode(COOL *cl, clDerivsData *clData, COOLPARTICLE *cp, d
             &density, &energy,
             &x_velocity, &y_velocity, &z_velocity,
             &metal_density)== 0) {
-            fprintf(stderr, "Grackle Error in solve_chemistry.\n");
-            assert(0);
+            CkAbort("Grackle Error in solve_chemistry.");
             }
         }
     else {
@@ -425,8 +422,7 @@ void CoolIntegrateEnergyCode(COOL *cl, clDerivsData *clData, COOLPARTICLE *cp, d
             &DI_density, &DII_density, &HDI_density,
                 &e_density, &metal_density)== 0) {
     
-            fprintf(stderr, "Grackle Error in solve_chemistry.\n");
-            assert(0);
+            CkAbort("Grackle Error in solve_chemistry.");
             }
         }
     energy += ExternalHeat*dt;  /* Gnedin suggestion */
@@ -444,8 +440,7 @@ void CoolIntegrateEnergyCode(COOL *cl, clDerivsData *clData, COOLPARTICLE *cp, d
             &density, &energy,
             &x_velocity, &y_velocity, &z_velocity,
             &metal_density)== 0) {
-            fprintf(stderr, "Grackle Error in solve_chemistry.\n");
-            assert(0);
+            CkAbort("Grackle Error in solve_chemistry.");
             }
         }
     else {
@@ -478,12 +473,11 @@ void CoolIntegrateEnergyCode(COOL *cl, clDerivsData *clData, COOLPARTICLE *cp, d
             &DI_density, &DII_density, &HDI_density,
                 &e_density, &metal_density)== 0) {
     
-            fprintf(stderr, "Grackle Error in solve_chemistry.\n");
-            assert(0);
+            CkAbort("Grackle Error in solve_chemistry.");
             }
         }
     
-    assert(energy > 0.0);
+    CkAssert(energy > 0.0);
     *E = energy;
 
 #if (GRACKLE_PRIMORDIAL_CHEMISTRY_MAX>=1)
@@ -508,17 +502,17 @@ void CoolIntegrateEnergyCode(COOL *cl, clDerivsData *clData, COOLPARTICLE *cp, d
     }
     
 double CoolHeatingRate( COOL *cl, COOLPARTICLE *cp, double T, double dDensity, double ZMetal, double rkpc) {
-    assert(0);
+    CkAbort("CoolHeatingRate not implemented for grackle cooling.");
     }
 
 double CoolCoolingCode(COOL *cl, COOLPARTICLE *cp, double ECode, 
 		       double rhoCode, double ZMetal, double *posCode ) {
-    assert(0);
+	CkAbort("CoolCoolingCode not implemented for grackle cooling.");
     }
 
 double CoolHeatingCode(COOL *cl, COOLPARTICLE *cp, double ECode, 
 		       double rhoCode, double ZMetal, double *posCode ) {
-    assert(0);
+	CkAbort("CoolHeatingCode not implemented for grackle cooling.");
     }
 
 void CoolAddParams( COOLPARAM *CoolParam, PRM prm ) {
@@ -637,8 +631,7 @@ double CoolCodeEnergyToTemperature( COOL *cl, COOLPARTICLE *cp, double E, double
         if (calculate_temperature_table(&cl->my_units, cl->a, 
                                         1, one, zero, zero,
                 &density, &energy, &metal_density, &temperature) == 0) {
-            fprintf(stderr, "Grackle Error in calculate_temperature.\n");
-            assert(0);
+            CkAbort("Grackle Error in calculate_temperature.");
             }
         }
     else {
@@ -669,8 +662,7 @@ double CoolCodeEnergyToTemperature( COOL *cl, COOLPARTICLE *cp, double E, double
                 &DI_density, &DII_density, &HDI_density,
                 &e_density, &metal_density, 
                 &temperature) == 0) {
-            fprintf(stderr, "Grackle Error in calculate_temperature.\n");
-            assert(0);
+            CkAbort("Grackle Error in calculate_temperature.");
             }
         }
     return ((double) temperature);
@@ -709,8 +701,7 @@ double CoolEdotInstantCode(COOL *cl, COOLPARTICLE *cp, double ECode,
                 1, one, zero, zero,
                 &density, &energy, 
                 &x_velocity, &y_velocity, &z_velocity, &metal_density, &cooling_time) == 0) {
-            fprintf(stderr, "Grackle Error in calculate_cooling_time_table.\n");
-            assert(0);
+            CkAbort("Grackle Error in calculate_cooling_time_table.");
             }
         }
     else {
@@ -752,8 +743,7 @@ double CoolEdotInstantCode(COOL *cl, COOLPARTICLE *cp, double ECode,
             &DI_density, &DII_density, &HDI_density,
             &e_density, &metal_density, 
             &cooling_time) == 0) {
-            fprintf(stderr, "Grackle Error in calculate_cooling_time.\n");
-            assert(0);
+            CkAbort("Grackle Error in calculate_cooling_time.");
             }
         }
 

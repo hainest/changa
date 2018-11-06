@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
-#include <assert.h>
+#include "charm.h"
 
 /*
  * Cooling code originally written by James Wadsley, McMaster
@@ -56,7 +56,7 @@ COOL *CoolInit( )
 {
   COOL *cl;
   cl = (COOL *) malloc(sizeof(COOL));
-  assert(cl!=NULL);
+  CkAssert(cl!=NULL);
 
   cl->nUV = 0;
   cl->UV = NULL; 
@@ -78,9 +78,9 @@ clDerivsData *CoolDerivsInit(COOL *cl)
     clDerivsData *Data;
     double dEMin;
 
-    assert(cl != NULL);
+    CkAssert(cl != NULL);
     Data = malloc(sizeof(clDerivsData));
-    assert(Data != NULL);
+    CkAssert(Data != NULL);
     Data->IntegratorContext = StiffInit( EPSINTEG, 1, Data, clDerivs);
     Data->cl = cl;
     Data->Y_Total0 = (cl->Y_H+cl->Y_He)*.9999; /* neutral */
@@ -109,7 +109,7 @@ void CoolDerivsFinalize(clDerivsData *clData)
 void clInitConstants( COOL *cl, double dGmPerCcUnit, double dComovingGmPerCcUnit, 
 		double dErgPerGmUnit, double dSecUnit, double dKpcUnit, COOLPARAM CoolParam) 
 {
-  assert(cl!=NULL);
+  CkAssert(cl!=NULL);
   cl->dGmPerCcUnit = dGmPerCcUnit;
   cl->dComovingGmPerCcUnit = dComovingGmPerCcUnit;
   cl->dErgPerGmUnit = dErgPerGmUnit;
@@ -134,14 +134,14 @@ void clInitUV(COOL *cl, int nTableColumns, int nTableRows, double *dTableData )
 {
     int i;
 
-    assert(cl!=NULL);
-    assert(cl->UV == NULL);
+    CkAssert(cl!=NULL);
+    CkAssert(cl->UV == NULL);
 
-	assert(nTableColumns == 7);
+	CkAssert(nTableColumns == 7);
 
     cl->nUV = nTableRows;
     cl->UV = (UVSPECTRUM *) malloc(nTableRows*sizeof(UVSPECTRUM));    
-	assert(cl->UV!=NULL);
+	CkAssert(cl->UV!=NULL);
     
     for (i=0;i<nTableRows;i++) {
 		(cl->UV)[i].zTime = dTableData[i*nTableColumns];
@@ -155,9 +155,9 @@ void clInitUV(COOL *cl, int nTableColumns, int nTableRows, double *dTableData )
 		(cl->UV)[i].Heat_Phot_HeII = dTableData[i*nTableColumns+6];
 
 		/* Make sure the heating is in units of ergs per ionization */
-		assert( (cl->UV)[i].Heat_Phot_HI>1e-15 && (cl->UV)[i].Heat_Phot_HI<1e-10);
+		CkAssert( (cl->UV)[i].Heat_Phot_HI>1e-15 && (cl->UV)[i].Heat_Phot_HI<1e-10);
 
-		if (i) assert (((cl->UV)[i-1].zTime > (cl->UV)[i].zTime 
+		if (i) CkAssert (((cl->UV)[i-1].zTime > (cl->UV)[i].zTime
 						&& !cl->bUVTableUsesTime) ||
 					   ((cl->UV)[i-1].zTime < (cl->UV)[i].zTime 
 						&& cl->bUVTableUsesTime));
@@ -175,8 +175,8 @@ void clInitRatesTable( COOL *cl, double TMin, double TMax, int nTable ) {
   int i;
   double DeltaTln, Tln, T;
 
-  assert(cl!=NULL);
-  assert(cl->RT == NULL);
+  CkAssert(cl!=NULL);
+  CkAssert(cl->RT == NULL);
 
   cl->R.Cool_Coll_HI = CL_eHI*CL_B_gm;
   cl->R.Cool_Coll_HeI = CL_eHeI*CL_B_gm;
@@ -191,7 +191,7 @@ void clInitRatesTable( COOL *cl, double TMin, double TMax, int nTable ) {
   DeltaTln = ( cl->TlnMax-cl->TlnMin )/( nTable - 1 );
   cl->rDeltaTln = 1./DeltaTln;
   cl->RT = (RATES_T *) malloc( nTable * sizeof(RATES_T) );
-  assert(cl->RT != NULL);
+  CkAssert(cl->RT != NULL);
 
   for ( i=0; i<nTable; i++ ) {
     Tln = cl->TlnMin + DeltaTln*(i-1);
@@ -286,7 +286,7 @@ void clRatesRedshift( COOL *cl, double zIn, double dTimeIn ) {
   UV = cl->UV;
 
   if (cl->bUV) {
-	  assert( UV != NULL );
+	  CkAssert( UV != NULL );
 	  if (cl->bUVTableUsesTime) {
 		  /*
 		   ** Table in order of increasing time
@@ -414,8 +414,8 @@ void clRates( COOL *cl, RATE *Rate, double T, double rho ) {
 
   xTln = (Tln-cl->TlnMin)*cl->rDeltaTln;
   iTln = xTln;
-  assert(iTln >= 0);
-  assert(iTln < cl->nTable - 1);
+  CkAssert(iTln >= 0);
+  CkAssert(iTln < cl->nTable - 1);
   RT0 = (cl->RT+iTln);
   RT1 = RT0+1; 
   wTln1 = xTln-iTln;
@@ -479,8 +479,8 @@ double clCoolTotal ( COOL *cl, PERBARYON *Y, RATE *Rate, double rho, double ZMet
 
   xTln = (Rate->Tln-cl->TlnMin)*cl->rDeltaTln;
   iTln = xTln;
-  assert(iTln >= 0);
-  assert(iTln < cl->nTable - 1);
+  CkAssert(iTln >= 0);
+  CkAssert(iTln < cl->nTable - 1);
   RT0 = (cl->RT+iTln);
   RT1 = RT0+1; 
   wTln1 = xTln-iTln;
@@ -527,8 +527,8 @@ COOL_ERGPERSPERGM  clTestCool ( COOL *cl, PERBARYON *Y, RATE *Rate, double rho )
 
   xTln = (Rate->Tln-cl->TlnMin)*cl->rDeltaTln;
   iTln = xTln;
-  assert(iTln >= 0);
-  assert(iTln < cl->nTable - 1);
+  CkAssert(iTln >= 0);
+  CkAssert(iTln < cl->nTable - 1);
   RT0 = (cl->RT+iTln);
   RT1 = RT0+1; 
   wTln1 = xTln-iTln;
@@ -580,8 +580,8 @@ void clPrintCool ( COOL *cl, PERBARYON *Y, RATE *Rate, double rho ) {
 
   xTln = (Rate->Tln-cl->TlnMin)*cl->rDeltaTln;
   iTln = xTln;
-  assert(iTln >= 0);
-  assert(iTln < cl->nTable - 1);
+  CkAssert(iTln >= 0);
+  CkAssert(iTln < cl->nTable - 1);
   RT0 = (cl->RT+iTln);
   RT1 = RT0+1; 
   wTln1 = xTln-iTln;
@@ -646,8 +646,8 @@ void clPrintCoolFile( COOL *cl, PERBARYON *Y, RATE *Rate, double rho, FILE *fp )
 
   xTln = (Rate->Tln-cl->TlnMin)*cl->rDeltaTln;
   iTln = xTln;
-  assert(iTln >= 0);
-  assert(iTln < cl->nTable - 1);
+  CkAssert(iTln >= 0);
+  CkAssert(iTln < cl->nTable - 1);
   RT0 = (cl->RT+iTln);
   RT1 = RT0+1; 
   wTln1 = xTln-iTln;
@@ -1020,8 +1020,8 @@ double clEdotInstant( COOL *cl, PERBARYON *Y, RATE *Rate, double rho,
 
   xTln = (Rate->Tln-cl->TlnMin)*cl->rDeltaTln;
   iTln = xTln;
-  assert(iTln >= 0);
-  assert(iTln < cl->nTable - 1);
+  CkAssert(iTln >= 0);
+  CkAssert(iTln < cl->nTable - 1);
   RT0 = (cl->RT+iTln);
   RT1 = RT0+1; 
   wTln1 = (xTln-iTln);
@@ -1174,7 +1174,7 @@ void clIntegrateEnergy(COOL *cl, clDerivsData *clData, PERBARYON *Y, double *E,
   {
       StiffStep( sbs, E, t, tStep);
 #ifdef ASSERTENEG      
-      assert(*E > 0.0);
+      CkAssert(*E > 0.0);
 #else
       if (*E < EMin) {
 	*E = EMin;
@@ -1298,7 +1298,7 @@ void CoolTableRead( COOL *Cool, int nData, void *vData)
 	   if (localcntTable == Cool->nTableRead) {
 		   nTableColumns = 7;
 		   nTableRows = nData/(sizeof(double)*nTableColumns);
-		   assert( nData == sizeof(double)*nTableColumns*nTableRows );
+		   CkAssert( nData == sizeof(double)*nTableColumns*nTableRows );
 		   clInitUV( Cool, nTableColumns, nTableRows, dTableData );
 		   Cool->nTableRead++;
 		   return;
@@ -1306,8 +1306,7 @@ void CoolTableRead( COOL *Cool, int nData, void *vData)
 	   localcntTable++;
 	   }
    
-   fprintf(stderr," Attempt to initialize non-exitent table in cooling\n");
-   assert(0);
+   CkAbort("Attempt to initialize non-exitent table in cooling");
 
    }
 
