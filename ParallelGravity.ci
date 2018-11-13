@@ -35,7 +35,7 @@ mainmodule ParallelGravity {
   readonly double dGlassDamper;
   readonly int bUseCkLoopPar;
   readonly int peanoKey;
-  readonly GenericTrees useTree;
+  readonly Tree::GenericTrees useTree;
   readonly int _prefetch;
   readonly int _randChunks;
   readonly int _numChunks;
@@ -98,7 +98,7 @@ mainmodule ParallelGravity {
 
 #ifdef PUSH_GRAVITY
   message BucketMsg {
-    GenericTreeNode buckets[];
+    Tree::GenericTreeNode buckets[];
     ExternalGravityParticle particles[];
   };
 #endif
@@ -485,8 +485,8 @@ mainmodule ParallelGravity {
     entry void finishSmoothWalk();
 
     entry [expedited] void fillRequestNode(CkCacheRequestMsg<KeyType> *msg);
-    entry [local] void receiveNodeCallback(GenericTreeNode *node, int chunk, int reqID, int awi, void *source);
-    //entry void receiveNode(GenericTreeNode node[1],
+    entry [local] void receiveNodeCallback(Tree::GenericTreeNode *node, int chunk, int reqID, int awi, void *source);
+    //entry void receiveNode(Tree::GenericTreeNode node[1],
     //	       unsigned int reqID);
     //entry void receiveParticle(GravityParticle part,
     //			   BucketGravityRequest &req);

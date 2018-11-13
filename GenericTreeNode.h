@@ -66,7 +66,7 @@ class NodePool;
     NodeType myType;
     NodeKey key;
 
-    GenericTreeNode() : myType(Invalid), key(0), parent(0), firstParticle(0),
+    GenericTreeNode() : myType(Tree::Invalid), key(0), parent(0), firstParticle(0),
 	lastParticle(0), remoteIndex(0), iParticleTypes(0), nSPH(0) {
 #if COSMO_STATS > 0
       used = false;
@@ -189,21 +189,21 @@ class NodePool;
 
     /// Is the NodeType valid
     bool isValid(){
-      return (myType != Invalid);
+      return (myType != Tree::Invalid);
     }
 
     /// Is this a node in the cache
     bool isCached(){
-      return (myType == Cached ||
-              myType == CachedBucket ||
-              myType == CachedEmpty);
+      return (myType == Tree::Cached ||
+              myType == Tree::CachedBucket ||
+              myType == Tree::CachedEmpty);
     }
 
     /// Is this a node a bucket
     bool isBucket(){
-      return (myType == Bucket ||
-              myType == CachedBucket ||
-              myType == NonLocalBucket);
+      return (myType == Tree::Bucket ||
+              myType == Tree::CachedBucket ||
+              myType == Tree::NonLocalBucket);
     }
 
     /// \brief construct the children of the "this" node following the
@@ -217,7 +217,7 @@ class NodePool;
 
     /// transform an internal node into a bucket
     inline void makeBucket(GravityParticle *part) {
-      myType = Bucket;
+      myType = Tree::Bucket;
       iRank = CkMyRank();
 #if INTERLIST_VER > 0
       numBucketsBeneath = 1;
@@ -249,7 +249,7 @@ class NodePool;
 
     /// @brief initialize an empty node
     inline void makeEmpty() {
-      myType = Empty;
+      myType = Tree::Empty;
       particleCount = 0;
 #if INTERLIST_VER > 0
       numBucketsBeneath = 0;
@@ -512,11 +512,11 @@ public:
 	  if (firstParticle == 0) {
               // We are at the left domain boundary: the left child is
               // completely on another TreePiece
-              children[0]->myType = NonLocal;
-              children[1]->myType = Boundary;
+              children[0]->myType = Tree::NonLocal;
+              children[1]->myType = Tree::Boundary;
 	  } else {
 	    children[0]->makeEmpty();
-	    children[1]->myType = lastParticle==totalPart+1 ? Boundary : Internal;
+	    children[1]->myType = lastParticle==totalPart+1 ? Tree::Boundary : Tree::Internal;
 	  }
 	  children[0]->lastParticle = firstParticle-1;
           children[0]->particleCount = 0;
@@ -527,11 +527,11 @@ public:
 	  if (lastParticle == totalPart+1) {
               // We are at the right domain boundary: the right child is
               // completely on another TreePiece
-              children[1]->myType = NonLocal;
-              children[0]->myType = Boundary;
+              children[1]->myType = Tree::NonLocal;
+              children[0]->myType = Tree::Boundary;
 	  } else {
 	    children[1]->makeEmpty();
-	    children[0]->myType = firstParticle==0 ? Boundary : Internal;
+	    children[0]->myType = firstParticle==0 ? Tree::Boundary : Tree::Internal;
 	  }
 	  children[1]->firstParticle = lastParticle+1;
           children[1]->particleCount = 0;
@@ -544,18 +544,18 @@ public:
           // the left child is NonLocal: the boundary particle (from
           // another TP) is in the left child, but the rest of the
           // particles are in the right child.
-	  children[0]->myType = NonLocal;
+	  children[0]->myType = Tree::NonLocal;
 	  children[0]->lastParticle = firstParticle;
-	  children[1]->myType = lastParticle==totalPart+1 ? Boundary : Internal;
+	  children[1]->myType = lastParticle==totalPart+1 ? Tree::Boundary : Tree::Internal;
 	  children[1]->firstParticle = firstParticle+1;
 	  children[1]->particleCount = particleCount;
 	} else if (lastParticle == totalPart+1 && rightBit != (part[totalPart].key & mask)) {
           // the right child is NonLocal: the boundary particle (from
           // another TP) is in the right child, but the rest of the
           // particles are in the left child.
-	  children[1]->myType = NonLocal;
+	  children[1]->myType = Tree::NonLocal;
 	  children[1]->firstParticle = lastParticle;
-	  children[0]->myType = firstParticle==0 ? Boundary : Internal;
+	  children[0]->myType = firstParticle==0 ? Tree::Boundary : Tree::Internal;
 	  children[0]->lastParticle = lastParticle-1;
 	  children[0]->particleCount = particleCount;
 	} else {
@@ -570,10 +570,10 @@ public:
 	  children[1]->firstParticle = splitParticle - part;
 	  children[0]->particleCount = children[0]->lastParticle - firstParticle + 1;
 	  children[1]->particleCount = lastParticle - children[1]->firstParticle + 1;
-	  children[0]->myType = children[0]->particleCount==0 ? Empty : (firstParticle==0 ? Boundary : Internal);
-	  children[1]->myType = children[1]->particleCount==0 ? Empty : (lastParticle==totalPart+1 ? Boundary : Internal);
-          if (children[0]->myType==Empty) children[0]->makeEmpty();
-          if (children[1]->myType==Empty) children[1]->makeEmpty();
+	  children[0]->myType = children[0]->particleCount==0 ? Tree::Empty : (firstParticle==0 ? Tree::Boundary : Tree::Internal);
+	  children[1]->myType = children[1]->particleCount==0 ? Tree::Empty : (lastParticle==totalPart+1 ? Tree::Boundary : Tree::Internal);
+          if (children[0]->myType==Tree::Empty) children[0]->makeEmpty();
+          if (children[1]->myType==Tree::Empty) children[1]->makeEmpty();
 	  if (firstParticle == 0) children[0]->particleCount --;
 	  if (lastParticle == totalPart+1) children[1]->particleCount --;
 	}
@@ -583,8 +583,8 @@ public:
       children[0]->particlePointer = &part[children[0]->firstParticle];
       children[1]->particlePointer = &part[children[1]->firstParticle];
 #if INTERLIST_VER > 0
-      if(children[0]->myType == NonLocal) children[0]->numBucketsBeneath = 0;
-      if(children[1]->myType == NonLocal) children[1]->numBucketsBeneath = 0;
+      if(children[0]->myType == Tree::NonLocal) children[0]->numBucketsBeneath = 0;
+      if(children[1]->myType == Tree::NonLocal) children[1]->numBucketsBeneath = 0;
       // empty nodes are makeEmpty()'ed, so that the numbucketsbeneath them are 0
 #endif
     }
@@ -623,15 +623,15 @@ public:
 
         if(level+1 != rootsLevel){
           if(tmp==tmp2){
-            children[0]->myType = Boundary;
-            children[1]->myType = NonLocal;
+            children[0]->myType = Tree::Boundary;
+            children[1]->myType = Tree::NonLocal;
 	          children[1]->firstParticle = lastParticle+1;
 	          children[0]->lastParticle = lastParticle;
 	          children[0]->particleCount = particleCount;
           }
           else{
-            children[0]->myType = NonLocal;
-            children[1]->myType = Boundary;
+            children[0]->myType = Tree::NonLocal;
+            children[1]->myType = Tree::Boundary;
 	          children[0]->lastParticle = firstParticle-1;
 	          children[1]->firstParticle = firstParticle;
 	          children[1]->particleCount = particleCount;
@@ -639,8 +639,8 @@ public:
         }
         else{ //Special case for TreePiece root level
           if(tmp==tmp2){
-            children[0]->myType = Internal;
-            children[1]->myType = NonLocal;
+            children[0]->myType = Tree::Internal;
+            children[1]->myType = Tree::NonLocal;
 	          children[1]->firstParticle = lastParticle+1;
 	          children[0]->lastParticle = lastParticle;
 	          children[0]->particleCount = particleCount;
@@ -650,8 +650,8 @@ public:
               children[0]->lastParticle = lastParticle-1;
           }
           else{
-            children[0]->myType = NonLocal;
-            children[1]->myType = Internal;
+            children[0]->myType = Tree::NonLocal;
+            children[1]->myType = Tree::Internal;
 	          children[0]->lastParticle = firstParticle-1;
 	          children[1]->firstParticle = firstParticle;
 	          children[1]->particleCount = particleCount;
@@ -723,8 +723,8 @@ public:
 	    CkAssert(children[1]->particleCount > 0);
 	}
 
-        children[0]->myType = Internal;
-        children[1]->myType = Internal;
+        children[0]->myType = Tree::Internal;
+        children[1]->myType = Tree::Internal;
 
         //Compress the bounding boxes of both children too
         children[0]->boundingBox.lesser_corner = boundingBox.lesser_corner;

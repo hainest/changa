@@ -9,7 +9,7 @@
 
 extern CProxy_TreePiece treeProxy;
 CkpvExtern(int, _lb_obj_index);
-using namespace std;
+
 //#define ORB3DLB_NOTOPO_DEBUG CkPrintf
 
 CreateLBFunc_Def(MultistepNodeLB_notopo, "Works best with multistepped runs; uses Orb3D_notopo for larger steps, greedy otherwise");
@@ -171,14 +171,14 @@ void MultistepNodeLB_notopo::work2(BaseLB::LDStats *stats, int count){
   // to balance objects. it is NOT indexed by tree piece index
   // there are as many entries in it as there are
   // migratable (active) tree pieces
- vector<OrbObject> tp_array;
+ std::vector<OrbObject> tp_array;
  tp_array.resize(nmig);
 
   if (_lb_args.debug()>=2) {
     CkPrintf("[work2] ready tp_array data structure\n");
   }
 
- vector<Event> tpEvents[NDIMS];
+ std::vector<Event> tpEvents[NDIMS];
   for(int i = 0; i < NDIMS; i++){
     tpEvents[i].reserve(nmig);
   }
@@ -289,7 +289,7 @@ void MultistepNodeLB_notopo::balanceTPsNode(BaseLB::LDStats* stats) {
   double* counts = new double[numNodes]; // total work on each node.
   memset(counts, 0.0, numNodes * sizeof(double));
   double totalld = 0.0;
-  vector<vector<int> > objpemap;  // vector of migratiable objects on
+  std::vector<std::vector<int> > objpemap;  // vector of migratiable objects on
                                   // each node.
   objpemap.resize(numNodes);
   
@@ -302,8 +302,8 @@ void MultistepNodeLB_notopo::balanceTPsNode(BaseLB::LDStats* stats) {
     objpemap[nd].push_back(i);
   }
   double avgldperpe = totalld / numNodes;
-  vector<int> unldpes;
-  vector<int> ovldpes;
+  std::vector<int> unldpes;
+  std::vector<int> ovldpes;
   double th = 1.20;
   double uth = 0.9;
   
@@ -325,7 +325,7 @@ void MultistepNodeLB_notopo::balanceTPsNode(BaseLB::LDStats* stats) {
 
   // make a max heap
   make_heap(ovldpes.begin(), ovldpes.end(), PeLdGreater(counts));
-  sort(unldpes.begin(), unldpes.end(), PeLdLesser(counts));
+  std::sort(unldpes.begin(), unldpes.end(), PeLdLesser(counts));
 
   int undcount = 0;
   //CkPrintf("[%d] is the maxLoadedPe with ld %f ovlded %d unldpes %d\n", ovldpes.front(), counts[ovldpes.front()], ovldpes.size(), unldpes.size());
@@ -378,7 +378,7 @@ void MultistepNodeLB_notopo::balanceTPsNode(BaseLB::LDStats* stats) {
         push_heap(ovldpes.begin(), ovldpes.end(), PeLdGreater(counts));
       }
       succ = true;
-      sort(unldpes.begin(), unldpes.end(), PeLdLesser(counts));
+      std::sort(unldpes.begin(), unldpes.end(), PeLdLesser(counts));
       break;
     }
   }
@@ -394,7 +394,7 @@ void MultistepNodeLB_notopo::balanceTPs(BaseLB::LDStats* stats) {
   double* counts = new double[stats->count];
   memset(counts, 0.0, stats->count * sizeof(double));
   double totalld = 0.0;
-  vector<vector<int> > objpemap;
+  std::vector<std::vector<int> > objpemap;
   objpemap.resize(stats->count);
   
   for (int i = 0; i < stats->n_objs; i++) {
@@ -405,8 +405,8 @@ void MultistepNodeLB_notopo::balanceTPs(BaseLB::LDStats* stats) {
     objpemap[stats->to_proc[i]].push_back(i);
   }
   double avgldperpe = totalld / stats->count;
-  vector<int> unldpes;
-  vector<int> ovldpes;
+  std::vector<int> unldpes;
+  std::vector<int> ovldpes;
   double th = 1.05;
   double unth = 0.9;
   int total_its = 0;
@@ -426,7 +426,7 @@ void MultistepNodeLB_notopo::balanceTPs(BaseLB::LDStats* stats) {
   }
   // make a max heap
   make_heap(ovldpes.begin(), ovldpes.end(), PeLdGreater(counts));
-  sort(unldpes.begin(), unldpes.end(), PeLdLesser(counts));
+  std::sort(unldpes.begin(), unldpes.end(), PeLdLesser(counts));
 
   int undcount = 0;
   //CkPrintf("[%d] is the maxLoadedPe with ld %f ovlded %d unldpes %d\n", ovldpes.front(), counts[ovldpes.front()], ovldpes.size(), unldpes.size());
@@ -479,7 +479,7 @@ void MultistepNodeLB_notopo::balanceTPs(BaseLB::LDStats* stats) {
         push_heap(ovldpes.begin(), ovldpes.end(), PeLdGreater(counts));
       }
       succ = true;
-      sort(unldpes.begin(), unldpes.end(), PeLdLesser(counts));
+      std::sort(unldpes.begin(), unldpes.end(), PeLdLesser(counts));
       break;
     }
   }

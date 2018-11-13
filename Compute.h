@@ -39,10 +39,10 @@ class Compute{
   // yes, allows listcompute object to keep modifying state
   // which will have within it the checklist, clist and plist
   /// @brief Work to be done at each node.
-  virtual int doWork(GenericTreeNode *, TreeWalk *tw, State *state, int chunk, int reqID, bool isRoot, bool &didcomp, int awi) = 0;
+  virtual int doWork(Tree::GenericTreeNode *, TreeWalk *tw, State *state, int chunk, int reqID, bool isRoot, bool &didcomp, int awi) = 0;
   // should return int, not bool
   virtual int openCriterion(TreePiece *ownerTP,
-                            GenericTreeNode *node, int reqID, State *state) = 0;
+                            Tree::GenericTreeNode *node, int reqID, State *state) = 0;
 
   virtual void stateReady(State *state, TreePiece *owner, int chunk, int start, int end) {}
 
@@ -125,10 +125,10 @@ class GravityCompute : public Compute{
 #endif
   }
 
-  int doWork(GenericTreeNode *, TreeWalk *tw, State *state, int chunk, int reqID, bool isRoot, bool &didcomp, int awi);
+  int doWork(Tree::GenericTreeNode *, TreeWalk *tw, State *state, int chunk, int reqID, bool isRoot, bool &didcomp, int awi);
 
-  int openCriterion(TreePiece *ownerTP, GenericTreeNode *node, int reqID, State *state);
-  int computeParticleForces(TreePiece *owner, GenericTreeNode *node, ExternalGravityParticle *part, int reqID);
+  int openCriterion(TreePiece *ownerTP, Tree::GenericTreeNode *node, int reqID, State *state);
+  int computeParticleForces(TreePiece *owner, Tree::GenericTreeNode *node, ExternalGravityParticle *part, int reqID);
 
   // book keeping on notifications
   void nodeMissedEvent(int reqID, int chunk, State *state, TreePiece *tp);
@@ -150,9 +150,9 @@ class ListCompute : public Compute{
   public:
   ListCompute() : Compute(List) {}
 
-  int doWork(GenericTreeNode *, TreeWalk *tw, State *state, int chunk, int reqID, bool isRoot, bool &didcomp, int awi);
+  int doWork(Tree::GenericTreeNode *, TreeWalk *tw, State *state, int chunk, int reqID, bool isRoot, bool &didcomp, int awi);
 
-  int openCriterion(TreePiece *ownerTP, GenericTreeNode *node, int reqID, State *state);
+  int openCriterion(TreePiece *ownerTP, Tree::GenericTreeNode *node, int reqID, State *state);
 
   // book keeping on notifications
   void nodeMissedEvent(int reqID, int chunk, State *state, TreePiece *tp);
@@ -190,18 +190,18 @@ class ListCompute : public Compute{
 
   private:
 
-  void addChildrenToCheckList(GenericTreeNode *node, int reqID, int chunk, int awi, State *s, CheckList &chklist, TreePiece *tp);
-  void addNodeToInt(GenericTreeNode *node, int offsetID, DoubleWalkState *s);
+  void addChildrenToCheckList(Tree::GenericTreeNode *node, int reqID, int chunk, int awi, State *s, CheckList &chklist, TreePiece *tp);
+  void addNodeToInt(Tree::GenericTreeNode *node, int offsetID, DoubleWalkState *s);
 
   DoubleWalkState *allocDoubleWalkState();
 
 #if defined CHANGA_REFACTOR_PRINT_INTERACTIONS || defined CHANGA_REFACTOR_WALKCHECK_INTERLIST || defined CUDA
   void addRemoteParticlesToInt(ExternalGravityParticle *parts, int n,
 			       Vector3D<cosmoType> &offset, DoubleWalkState *s,
-			       NodeKey key);
+				   Tree::NodeKey key);
   void addLocalParticlesToInt(GravityParticle *parts, int n,
 			      Vector3D<cosmoType> &offset, DoubleWalkState *s,
-			      NodeKey key, GenericTreeNode *gtn);
+				  Tree::NodeKey key, Tree::GenericTreeNode *gtn);
 #else
   void addRemoteParticlesToInt(ExternalGravityParticle *parts, int n,
 			       Vector3D<cosmoType> &offset, DoubleWalkState *s);
@@ -210,7 +210,7 @@ class ListCompute : public Compute{
 #endif
 
 #ifdef CUDA
-  void getBucketParameters(TreePiece *tp, int bucket, int &bucketStart, int &bucketSize, std::map<NodeKey, int>&lpref);
+  void getBucketParameters(TreePiece *tp, int bucket, int &bucketStart, int &bucketSize, std::map<Tree::NodeKey, int>&lpref);
 
   public:
   void resetCudaNodeState(DoubleWalkState *state);
@@ -229,8 +229,8 @@ class PrefetchCompute : public Compute{
   PrefetchCompute() : Compute(Prefetch) {
     computeEntity = 0;
   }
-  virtual int doWork(GenericTreeNode *, TreeWalk *tw, State *state, int chunk, int reqID, bool isRoot, bool &didcomp, int awi);
-  int openCriterion(TreePiece *ownerTP, GenericTreeNode *node, int reqIDD, State *state);
+  virtual int doWork(Tree::GenericTreeNode *, TreeWalk *tw, State *state, int chunk, int reqID, bool isRoot, bool &didcomp, int awi);
+  int openCriterion(TreePiece *ownerTP, Tree::GenericTreeNode *node, int reqIDD, State *state);
 
   // book-keeping on notifications
   void startNodeProcessEvent(State *state);
@@ -244,7 +244,7 @@ class PrefetchCompute : public Compute{
 class DummyPrefetchCompute : public PrefetchCompute {
   public:
     /// Immediately stop the walk.
-  int doWork(GenericTreeNode *, TreeWalk *tw, State *state, int chunk, int reqID, bool isRoot, bool &didcomp, int awi){
+  int doWork(Tree::GenericTreeNode *, TreeWalk *tw, State *state, int chunk, int reqID, bool isRoot, bool &didcomp, int awi){
     return DUMP;
   }
 };
@@ -277,8 +277,8 @@ class ActiveWalk {
 class TreeNodeWorker {
 
   public:
-  virtual bool work(GenericTreeNode *node, int level) = 0;
-  virtual void doneChildren(GenericTreeNode *node, int level) {}
+  virtual bool work(Tree::GenericTreeNode *node, int level) = 0;
+  virtual void doneChildren(Tree::GenericTreeNode *node, int level) {}
 };
 
 /// @brief Class to build the remote part of the tree.  Fills in
@@ -293,11 +293,11 @@ class RemoteTreeBuilder : public TreeNodeWorker {
     requestNonLocalMoments(req)
   {}
 
-  bool work(GenericTreeNode *node, int level);
-  void doneChildren(GenericTreeNode *node, int level);
+  bool work(Tree::GenericTreeNode *node, int level);
+  void doneChildren(Tree::GenericTreeNode *node, int level);
 
   private:
-  void registerNode(GenericTreeNode *node);
+  void registerNode(Tree::GenericTreeNode *node);
 
 };
 
@@ -310,11 +310,11 @@ class LocalTreeBuilder : public TreeNodeWorker {
     tp(owner)
   {}
 
-  bool work(GenericTreeNode *node, int level);
-  void doneChildren(GenericTreeNode *node, int level);
+  bool work(Tree::GenericTreeNode *node, int level);
+  void doneChildren(Tree::GenericTreeNode *node, int level);
 
   private:
-  void registerNode(GenericTreeNode *node);
+  void registerNode(Tree::GenericTreeNode *node);
 };
 
 /** @brief TreeNodeWorker implementation that just prints out the
@@ -323,12 +323,12 @@ class LocalTreeBuilder : public TreeNodeWorker {
 class LocalTreePrinter : public TreeNodeWorker {
   int index;
   std::ofstream file;
-  string description;
+  std::string description;
 
   void openFile();
 
   public:
-  LocalTreePrinter(string d, int idx) : 
+  LocalTreePrinter(std::string d, int idx) : 
     index(idx),
     description(d)
   {
@@ -340,8 +340,8 @@ class LocalTreePrinter : public TreeNodeWorker {
     file.close();
   }
 
-  bool work(GenericTreeNode *node, int level);
-  void doneChildren(GenericTreeNode *node, int level);
+  bool work(Tree::GenericTreeNode *node, int level);
+  void doneChildren(Tree::GenericTreeNode *node, int level);
 };
 
 #ifdef COOLING_MOLECULARH

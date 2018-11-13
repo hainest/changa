@@ -97,13 +97,13 @@ class SmoothCompute : public Compute
     virtual 
       void bucketCompare(TreePiece *tp,
 			 GravityParticle *p,  // Particle to test
-			 GenericTreeNode *node, // bucket
+			 Tree::GenericTreeNode *node, // bucket
 			 GravityParticle *particles, // local particle data
 			 Vector3D<double> offset,
 			 State *state
 			 ) = 0;
 
-    int doWork(GenericTreeNode *node,
+    int doWork(Tree::GenericTreeNode *node,
 	       TreeWalk *tw,
 	       State *state,
 	       int chunk,
@@ -141,14 +141,14 @@ public:
 
     void bucketCompare(TreePiece *tp,
 		       GravityParticle *p,  // Particle to test
-		       GenericTreeNode *node, // bucket
+			   Tree::GenericTreeNode *node, // bucket
 		       GravityParticle *particles, // local particle data
 		       Vector3D<double> offset,
                        State *state
 		       ) ;
 	    
     void initSmoothPrioQueue(int iBucket, State *state) ;
-    int openCriterion(TreePiece *ownerTP, GenericTreeNode *node, int reqID, State *state);
+    int openCriterion(TreePiece *ownerTP, Tree::GenericTreeNode *node, int reqID, State *state);
     void startNodeProcessEvent(State *state){ }
     void finishNodeProcessEvent(TreePiece *owner, State *state){ }
     void nodeRecvdEvent(TreePiece *owner, int chunk, State *state, int bucket);
@@ -195,13 +195,13 @@ public:
 
     void bucketCompare(TreePiece *tp,
 		       GravityParticle *p,  // Particle to test
-		       GenericTreeNode *node, // bucket
+			   Tree::GenericTreeNode *node, // bucket
 		       GravityParticle *particles, // local particle data
 		       Vector3D<double> offset,
                        State *state
 		       ) ;
 	    
-    int openCriterion(TreePiece *ownerTP, GenericTreeNode *node, int reqID, State *state);
+    int openCriterion(TreePiece *ownerTP, Tree::GenericTreeNode *node, int reqID, State *state);
     void startNodeProcessEvent(State *state){ }
     void finishNodeProcessEvent(TreePiece *owner, State *state){ }
     void nodeRecvdEvent(TreePiece *owner, int chunk, State *state, int bucket);
@@ -233,13 +233,13 @@ public:
 
     void bucketCompare(TreePiece *tp,
 		       GravityParticle *p,  // Particle to test
-		       GenericTreeNode *node, // bucket
+			   Tree::GenericTreeNode *node, // bucket
 		       GravityParticle *particles, // local particle data
 		       Vector3D<double> offset,
                        State *state
 		       ) ;
 	    
-    int openCriterion(TreePiece *ownerTP, GenericTreeNode *node, int reqID, State *state);
+    int openCriterion(TreePiece *ownerTP, Tree::GenericTreeNode *node, int reqID, State *state);
     void startNodeProcessEvent(State *state){ }
     void finishNodeProcessEvent(TreePiece *owner, State *state){ }
     void nodeRecvdEvent(TreePiece *owner, int chunk, State *state, int bucket);
@@ -275,37 +275,37 @@ class SmoothOpt : public Opt{
   SmoothOpt() : Opt(Local){
     // don't need to open
     // these nodes are your concern
-    action_array[0][Internal] = DUMP;
-    action_array[0][Bucket] = DUMP;
+    action_array[0][Tree::Internal] = DUMP;
+    action_array[0][Tree::Bucket] = DUMP;
 
-    action_array[0][Boundary] = DUMP; 
-    action_array[0][NonLocal] = DUMP; 
-    action_array[0][NonLocalBucket] = DUMP;	
-    action_array[0][Cached] = DUMP;	
-    action_array[0][CachedBucket] = DUMP;
+    action_array[0][Tree::Boundary] = DUMP;
+    action_array[0][Tree::NonLocal] = DUMP;
+    action_array[0][Tree::NonLocalBucket] = DUMP;
+    action_array[0][Tree::Cached] = DUMP;
+    action_array[0][Tree::CachedBucket] = DUMP;
 
-    action_array[0][Empty] = DUMP;
-    action_array[0][CachedEmpty] = DUMP;
-    action_array[0][Top] = ERROR;
-    action_array[0][Invalid] = ERROR;
+    action_array[0][Tree::Empty] = DUMP;
+    action_array[0][Tree::CachedEmpty] = DUMP;
+    action_array[0][Tree::Top] = ERROR;
+    action_array[0][Tree::Invalid] = ERROR;
     //--------------
     // need to open node
     // local data
-    action_array[1][Internal] = KEEP;
-    action_array[1][Bucket] = KEEP_LOCAL_BUCKET;
-    action_array[1][Boundary] = KEEP;
+    action_array[1][Tree::Internal] = KEEP;
+    action_array[1][Tree::Bucket] = KEEP_LOCAL_BUCKET;
+    action_array[1][Tree::Boundary] = KEEP;
 
     // remote data
-    action_array[1][NonLocal] = KEEP;
-    action_array[1][NonLocalBucket] = KEEP_REMOTE_BUCKET;
-    action_array[1][CachedBucket] = KEEP_REMOTE_BUCKET;
-    action_array[1][Cached] = KEEP;
+    action_array[1][Tree::NonLocal] = KEEP;
+    action_array[1][Tree::NonLocalBucket] = KEEP_REMOTE_BUCKET;
+    action_array[1][Tree::CachedBucket] = KEEP_REMOTE_BUCKET;
+    action_array[1][Tree::Cached] = KEEP;
 
     // discard
-    action_array[1][Empty] = DUMP;
-    action_array[1][CachedEmpty] = DUMP;
-    action_array[1][Top] = ERROR;
-    action_array[1][Invalid] = ERROR;
+    action_array[1][Tree::Empty] = DUMP;
+    action_array[1][Tree::CachedEmpty] = DUMP;
+    action_array[1][Tree::Top] = ERROR;
+    action_array[1][Tree::Invalid] = ERROR;
   }
 
 };

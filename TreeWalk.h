@@ -48,9 +48,9 @@ class TreeWalk{
   void reassoc(Compute *c);
 
   virtual void reset() {}; 
-  virtual void walk(GenericTreeNode *node, State *state, int chunk, int reqID, int activeWalkIndex) = 0;
+  virtual void walk(Tree::GenericTreeNode *node, State *state, int chunk, int reqID, int activeWalkIndex) = 0;
   // when resuming a walk after a missed node is received, use this function
-  virtual void resumeWalk(GenericTreeNode *node, State *state, int chunk, int reqID, int activeWalkIndex) {
+  virtual void resumeWalk(Tree::GenericTreeNode *node, State *state, int chunk, int reqID, int activeWalkIndex) {
 	  walk(node, state, chunk, reqID, activeWalkIndex);
   }
   // beware of using default implementation - always returns 'false'
@@ -63,17 +63,17 @@ class TreeWalk{
 class TopDownTreeWalk : public TreeWalk{ 
   private:
 #ifndef CHANGA_REFACTOR_WALKCHECK
-  void dft(GenericTreeNode *node, State *state, int chunk, int reqID, bool isRoot, int awi);
-  void bft(GenericTreeNode *node, State *state, int chunk, int reqID, bool isRoot, int awi);
+  void dft(Tree::GenericTreeNode *node, State *state, int chunk, int reqID, bool isRoot, int awi);
+  void bft(Tree::GenericTreeNode *node, State *state, int chunk, int reqID, bool isRoot, int awi);
 #else
-  void dft(GenericTreeNode *node, State *state, int chunk, int reqID, bool isRoot, int shift, bool doprint);
+  void dft(Tree::GenericTreeNode *node, State *state, int chunk, int reqID, bool isRoot, int shift, bool doprint);
 #endif
   public: 
   TopDownTreeWalk(Compute *_comp, TreePiece *tp):TreeWalk(_comp,tp,TopDown){}
   TopDownTreeWalk() : TreeWalk(TopDown) {}
 
   //bool ancestorCheck(GenericTreeNode *node, int reqID);
-  void walk(GenericTreeNode *node, State *state, int chunk, int reqID, int awi);
+  void walk(Tree::GenericTreeNode *node, State *state, int chunk, int reqID, int awi);
 };
 
 /// Walk a tree starting with a leaf node and working up the tree.
@@ -84,7 +84,7 @@ class BottomUpTreeWalk : public TreeWalk{
   BottomUpTreeWalk(Compute *_comp, TreePiece *tp):TreeWalk(_comp,tp,BottomUp){}
   BottomUpTreeWalk() : TreeWalk(BottomUp) {}
 
-  void walk(GenericTreeNode *node, State *state, int chunk, int reqID, int awi);
+  void walk(Tree::GenericTreeNode *node, State *state, int chunk, int reqID, int awi);
 };
 
 
@@ -101,7 +101,7 @@ class BottomUpTreeWalk : public TreeWalk{
 /// should be.
 class LocalTargetWalk : public TreeWalk {
 
-  NodeKey targetKey;
+  Tree::NodeKey targetKey;
   private:
   /// @brief Depth First TreeWalk
   /// @param localNode Node to work on.
@@ -111,12 +111,12 @@ class LocalTargetWalk : public TreeWalk {
   /// @param isRoot Is localNode the root.
   /// @param awi Active Walk Index.
   /// @param level Level in the tree.
-  void dft(GenericTreeNode *localNode, State *state, int chunk, int reqID, 
+  void dft(Tree::GenericTreeNode *localNode, State *state, int chunk, int reqID,
                                               bool isRoot, int awi, int level);
   /// @brief process a node from the check list
   /// @brief glblNode Source node to be checked.
   bool processNode(
-                   GenericTreeNode *glblNode,
+                   Tree::GenericTreeNode *glblNode,
                    State *state, 
                    int chunk, int reqID, 
                    bool isRoot, bool &didcomp, 
@@ -124,9 +124,9 @@ class LocalTargetWalk : public TreeWalk {
   public:
   LocalTargetWalk(Compute *_comp, TreePiece *tp):TreeWalk(_comp,tp,LocalTarget){}
   LocalTargetWalk() : TreeWalk(LocalTarget) { targetKey = 0;}
-  void walk(GenericTreeNode *startAncestor, State *state, int chunk, int reqID, int awi);
-  void resumeWalk(GenericTreeNode *node, State *state, int chunk, int reqID, int activeWalkIndex);
-  NodeKey getTargetKey() {return targetKey;}
+  void walk(Tree::GenericTreeNode *startAncestor, State *state, int chunk, int reqID, int awi);
+  void resumeWalk(Tree::GenericTreeNode *node, State *state, int chunk, int reqID, int activeWalkIndex);
+  Tree::NodeKey getTargetKey() {return targetKey;}
   
 };
 #endif
@@ -139,7 +139,7 @@ class LocalTreeTraversal {
   /// @param node Node on which we are working.
   /// @param worker Describes work to be done on each node.
   /// @param level Level of the tree we are on.
-  void dft(GenericTreeNode *node, TreeNodeWorker *worker, int level){
+  void dft(Tree::GenericTreeNode *node, TreeNodeWorker *worker, int level){
     if(worker->work(node,level)){
       for(int i = 0; i < node->numChildren(); i++){
         dft(node->getChildren(i),worker,level+1);

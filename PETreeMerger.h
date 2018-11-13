@@ -12,7 +12,7 @@
 /// This group is used if MERGE_REMOTE_REQUESTS is defined.
 class PETreeMerger : public CBase_PETreeMerger {
 
-  CkVec<GenericTreeNode*> submittedRoots;
+  CkVec<Tree::GenericTreeNode*> submittedRoots;
   CkVec<TreePiece*> submittedTreePieces;
 
   NonEmptyTreePieceCounter submittingTreePieceCounter;
@@ -22,13 +22,13 @@ class PETreeMerger : public CBase_PETreeMerger {
   PETreeMerger(CkMigrateMessage *m) : CBase_PETreeMerger(m) {}
   void pup(PUP::er &p) { CBase_PETreeMerger::pup(p); }
 
-  void mergeNonLocalRequests(GenericTreeNode *root, TreePiece *treePiece);
+  void mergeNonLocalRequests(Tree::GenericTreeNode *root, TreePiece *treePiece);
   void freeTree();
 
   private:
 
-  void mergeWalk(CkVec<GenericTreeNode*> &mergeList, CkVec<TreePiece*> &treePieceList);
-  void requestNonLocalMoments(GenericTreeNode *pickedNode, TreePiece *pickedTreePiece);
+  void mergeWalk(CkVec<Tree::GenericTreeNode*> &mergeList, CkVec<TreePiece*> &treePieceList);
+  void requestNonLocalMoments(Tree::GenericTreeNode *pickedNode, TreePiece *pickedTreePiece);
 
 };
 /// @}

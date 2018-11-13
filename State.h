@@ -82,7 +82,7 @@ class GenericList{
                            int &bucketStart, int &bucketSize){
                            //std::map<NodeKey, int>&lpref){
 	// bucket is listed in this offload
-	GenericTreeNode *bucketNode = tp->bucketList[bucket];
+	Tree::GenericTreeNode *bucketNode = tp->bucketList[bucket];
 
 	bucketSize = bucketNode->lastParticle - bucketNode->firstParticle + 1;
         bucketStart = bucketNode->bucketArrayIndex;
@@ -94,7 +94,7 @@ class GenericList{
                            int &bucketStart, int &bucketSize){
                            //std::map<NodeKey, int>&lpref){
 	// bucket is listed in this offload
-	GenericTreeNode *bucketNode = tp->bucketList[bucket];
+	Tree::GenericTreeNode *bucketNode = tp->bucketList[bucket];
         BucketActiveInfo *binfo = &(tp->bucketActiveInfo[bucket]);
 
 	//bucketSize = bucketNode->lastParticle - bucketNode->firstParticle + 1;
@@ -166,12 +166,12 @@ class DoubleWalkState : public State {
   // we have them marked at that time. since all particles,
   // are available on the gpu for these rungs, we do not clear 
   // the markings when requests are sent out.
-  CkVec<GenericTreeNode *> markedBuckets;
+  CkVec<Tree::GenericTreeNode *> markedBuckets;
 
   /// Map of node to index in node vector being sent to the GPU. This is
   /// used for remote nodes.
-  std::unordered_map<NodeKey,int> nodeMap;
-  std::unordered_map<NodeKey,int> partMap;
+  std::unordered_map<Tree::NodeKey,int> nodeMap;
+  std::unordered_map<Tree::NodeKey,int> partMap;
 
   bool nodeOffloadReady(){
     return nodeLists.totalNumInteractions >= nodeThreshold;
@@ -197,7 +197,7 @@ class DoubleWalkState : public State {
   /// walk returns. Also used to find at which
   /// bucket computation should start, and which level of cell lists
   /// should be used.
-  GenericTreeNode *lowestNode;
+  Tree::GenericTreeNode *lowestNode;
   int level;
 
   DoubleWalkState() : chklists(0), lowestNode(0), level(-1) {

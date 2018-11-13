@@ -8,8 +8,6 @@
 extern CProxy_TreePiece treeProxy;
 CkpvExtern(int, _lb_obj_index);
 
-using namespace std;
-
 CreateLBFunc_Def(Orb3dLB, "3d ORB mapping of tree piece space onto 3d processor mesh");
 
 static int comparx(const void *a, const void *b){

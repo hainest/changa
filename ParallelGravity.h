@@ -52,10 +52,6 @@ PUPbytes(COOLPARAM);
 
 #define MERGE_REMOTE_REQUESTS_VERBOSE /*CkPrintf*/
 
-using namespace std;
-
-using namespace Tree;
-
 /// Load balancers that need the spatial information.
 enum LBStrategy{
   Null=0,
@@ -142,7 +138,7 @@ extern double dMaxBalance;
 extern double dFracLoadBalance;
 extern double dGlassDamper;
 extern int bUseCkLoopPar;
-extern GenericTrees useTree;
+extern Tree::GenericTrees useTree;
 extern CProxy_TreePiece treeProxy;
 #ifdef REDUCTION_HELPER
 extern CProxy_ReductionHelper reductionHelperProxy;
@@ -311,7 +307,7 @@ public:
 #include "ckmulticast.h"
 
 struct BucketMsg : public CkMcastBaseMsg, public CMessage_BucketMsg {
-  GenericTreeNode *buckets;
+  Tree::GenericTreeNode *buckets;
   int numBuckets;
   ExternalGravityParticle *particles;
   int numParticles;
@@ -609,7 +605,7 @@ class State;
 ///Remote Cell interaction lists for all tree levels
 typedef struct OffsetNodeStruct
 {
-      GenericTreeNode *node;
+      Tree::GenericTreeNode *node;
       int offsetID;
 }OffsetNode;
 
@@ -628,10 +624,10 @@ typedef struct particlesInfoR{
     int numParticles;
     Vector3D<cosmoType> offset;
 #if defined CHANGA_REFACTOR_PRINT_INTERACTIONS || defined CHANGA_REFACTOR_WALKCHECK_INTERLIST || defined CUDA
-    NodeKey key;
+    Tree::NodeKey key;
 #endif
 #if COSMO_DEBUG > 1
-    GenericTreeNode *nd;
+    Tree::GenericTreeNode *nd;
 #endif
 } RemotePartInfo;
 
@@ -641,10 +637,10 @@ typedef struct particlesInfoL{
     int numParticles;
     Vector3D<cosmoType> offset;
 #if defined CHANGA_REFACTOR_PRINT_INTERACTIONS || defined CHANGA_REFACTOR_WALKCHECK_INTERLIST || defined CUDA
-    NodeKey key;
+    Tree::NodeKey key;
 #endif
 #if COSMO_DEBUG > 1 || defined CUDA
-    GenericTreeNode *nd;
+    Tree::GenericTreeNode *nd;
 #endif
 } LocalPartInfo;
 
@@ -655,7 +651,7 @@ typedef struct particlesInfoL{
  * Each attribute is a list so that multiple buckets can be operated on.
  */
 typedef struct LoopParDataStruct {
-  CkVec<GenericTreeNode*> lowNodes;  ///< Lowest node containing the
+  CkVec<Tree::GenericTreeNode*> lowNodes;  ///< Lowest node containing the
                                      ///  buckets to interact
   CkVec<int> bucketids;              ///< startBucket number
   CkVec<int> chunkids;               ///< remote walk chunk number
@@ -684,14 +680,14 @@ template<typename T> class GenericList;
 /// @brief client that has requested a moment.
 struct NonLocalMomentsClient {
   TreePiece *clientTreePiece;
-  GenericTreeNode *clientNode;
+  Tree::GenericTreeNode *clientNode;
 
   NonLocalMomentsClient() :
     clientTreePiece(NULL),
     clientNode(NULL)
   {}
 
-  NonLocalMomentsClient(TreePiece *tp, GenericTreeNode *node) : 
+  NonLocalMomentsClient(TreePiece *tp, Tree::GenericTreeNode *node) : 
     clientTreePiece(tp),
     clientNode(node)
   {}
@@ -699,14 +695,14 @@ struct NonLocalMomentsClient {
 
 /// @brief List of clients needing a particular moment
 struct NonLocalMomentsClientList {
-  GenericTreeNode *targetNode;
+  Tree::GenericTreeNode *targetNode;
   CkVec<NonLocalMomentsClient> clients;
 
   NonLocalMomentsClientList() : 
     targetNode(NULL)
   {}
 
-  NonLocalMomentsClientList(GenericTreeNode *node) :
+  NonLocalMomentsClientList(Tree::GenericTreeNode *node) :
     targetNode(node)
   {}
 
@@ -787,8 +783,8 @@ class TreePiece : public CBase_TreePiece {
    map<int,CkSectionInfo> cookieJar;
   
    BucketMsg *createBucketMsg();
-   void unpackBuckets(BucketMsg *, GenericTreeNode *&foreignBuckets, int &numForeignBuckets);
-   void calculateForces(GenericTreeNode *foreignBuckets, int numForeignBuckets);
+   void unpackBuckets(BucketMsg *, Tree::GenericTreeNode *&foreignBuckets, int &numForeignBuckets);
+   void calculateForces(Tree::GenericTreeNode *foreignBuckets, int numForeignBuckets);
 
 #endif
 
@@ -917,7 +913,7 @@ class TreePiece : public CBase_TreePiece {
           FirstGPUParticleIndex = fillIndex;//This is for the GPU Ewald
           if(largePhase()){
             for(int b = 0; b < numBuckets; b++){
-              GenericTreeNode *bucket = bucketList[b];
+              Tree::GenericTreeNode *bucket = bucketList[b];
               int buckstart = bucket->firstParticle;
               int buckend = bucket->lastParticle;
               GravityParticle *buckparts = bucket->particlePointer;
@@ -930,7 +926,7 @@ class TreePiece : public CBase_TreePiece {
           }
           else{
             for(int b = 0; b < numBuckets; b++){
-              GenericTreeNode *bucket = bucketList[b];
+              Tree::GenericTreeNode *bucket = bucketList[b];
               if(bucket->rungs < activeRung){
                 continue;
               }
@@ -967,7 +963,7 @@ class TreePiece : public CBase_TreePiece {
           return myParticles[partNum].rung >= activeRung;
         }
 
-        void clearMarkedBuckets(CkVec<GenericTreeNode *> &markedBuckets);
+        void clearMarkedBuckets(CkVec<Tree::GenericTreeNode *> &markedBuckets);
         void clearMarkedBucketsAll();
 
 #ifdef HAPI_TRACE
@@ -1007,13 +1003,13 @@ class TreePiece : public CBase_TreePiece {
         void continueWrapUp();
 
 #if INTERLIST_VER > 0
-        void getBucketsBeneathBounds(GenericTreeNode *&node, int &start, int &end);
+        void getBucketsBeneathBounds(Tree::GenericTreeNode *&node, int &start, int &end);
         void updateBucketState(int start, int end, int n, int chunk, State *state);
         void updateUnfinishedBucketState(int start, int end, int n, int chunk, State *state);
 #endif
 
 #if defined CHANGA_REFACTOR_WALKCHECK || defined CHANGA_REFACTOR_WALKCHECK_INTERLIST
-        void addToBucketChecklist(int bucketIndex, NodeKey k){
+        void addToBucketChecklist(int bucketIndex, Tree::NodeKey k){
           bucketcheckList[bucketIndex].insert(k);
           if(bucketIndex == TEST_BUCKET && thisIndex == TEST_TP)
             CkPrintf("[%d] add %ld\n", thisIndex, k);
@@ -1021,16 +1017,16 @@ class TreePiece : public CBase_TreePiece {
 #endif
 
 #if INTERLIST_VER > 0
-        GenericTreeNode *getStartAncestor(int current, int previous, GenericTreeNode *dflt);
+        Tree::GenericTreeNode *getStartAncestor(int current, int previous, Tree::GenericTreeNode *dflt);
 #endif
 	/// \brief convert a key to a node using the nodeLookupTable
-	inline GenericTreeNode *keyToNode(const Tree::NodeKey k){
-          NodeLookupType::iterator iter = nodeLookupTable.find(k);
+	inline Tree::GenericTreeNode *keyToNode(const Tree::NodeKey k){
+          Tree::NodeLookupType::iterator iter = nodeLookupTable.find(k);
           if (iter != nodeLookupTable.end()) return iter->second;
           else return NULL;
         }
 
-        GenericTreeNode *getBucket(int i){
+        Tree::GenericTreeNode *getBucket(int i){
           return bucketList[i];
         }
 
@@ -1107,7 +1103,7 @@ private:
 	int myIOParticles;
 
 	/// List of all the node-buckets in this TreePiece
-	std::vector<GenericTreeNode *> bucketList;
+	std::vector<Tree::GenericTreeNode *> bucketList;
 
 	/// Array with sorted particles for domain decomposition (ORB)
 	std::vector<GravityParticle> mySortedParticles;
@@ -1163,11 +1159,11 @@ private:
 	OrientedBox<float> boundingBox;
 	unsigned iterationNo;
 	/// The root of the global tree, always local to any chare
-	GenericTreeNode* root;
+	Tree::GenericTreeNode* root;
 	/// pool of memory to hold TreeNodes: makes allocation more efficient.
-	NodePool *pTreeNodes;
+	Tree::NodePool *pTreeNodes;
 
-	typedef std::map<NodeKey, CkVec<int>* >   MomentRequestType;
+	typedef std::map<Tree::NodeKey, CkVec<int>* >   MomentRequestType;
 	/// Keep track of the requests for remote moments not yet satisfied.
 	/// Used only during the tree construction.  This is a map
 	/// from NodeKey to a vector of treepieces that have requested it.
@@ -1211,7 +1207,7 @@ private:
 				// to write file.
 
 	/// Map between Keys and TreeNodes, used to get a node from a key
-	NodeLookupType nodeLookupTable;
+	Tree::NodeLookupType nodeLookupTable;
 
 	/// Number of nodes still missing before starting the real computation
 	//u_int64_t prefetchWaiting;
@@ -1336,7 +1332,7 @@ private:
   void quiescence();
   /*END DEBUGGING */
 
-  NodeLookupType &getNodeLookupTable() {
+  Tree::NodeLookupType &getNodeLookupTable() {
 	  return nodeLookupTable;
   }
 
@@ -1365,12 +1361,12 @@ private:
 	/// Compute all the moments for the nodes that are NonLocal, so that
 	/// during the tree traversal, they contain useful information to decide
 	/// whether to open or not.
-	void calculateRemoteMoments(GenericTreeNode* node);
+	void calculateRemoteMoments(Tree::GenericTreeNode* node);
 
 	/// Checks that every particle is indeed included in its bucket node
 	/// (may not be true due to truncation of the last two bits while
 	/// generating the 63 bit keys.
-	void checkTree(GenericTreeNode* node);
+	void checkTree(Tree::GenericTreeNode* node);
 
 	/// Given a node, check who is the first owner and the last owner of it.
 	/// It assumes that there are splitters, and that there is an ordering
@@ -1395,7 +1391,7 @@ private:
 	 * to trigger nextBucket() which will loop over all the buckets.
 	 */
 	void doAllBuckets();
-	void reconstructNodeLookup(GenericTreeNode *node);
+	void reconstructNodeLookup(Tree::GenericTreeNode *node);
 	//void rebuildSFCTree(GenericTreeNode *node,GenericTreeNode *parent,int *);
 
 public:
@@ -1568,7 +1564,7 @@ public:
 	void setPeriodic(int nReplicas, Vector3D<cosmoType> fPeriod, int bEwald,
 			 double fEwCut, double fEwhCut, int bPeriod,
                          int bComove, double dRhoFac);
-	void BucketEwald(GenericTreeNode *req, int nReps,double fEwCut);
+	void BucketEwald(Tree::GenericTreeNode *req, int nReps,double fEwCut);
 	void EwaldInit();
 	void calculateEwald(dummyMsg *m);
   void calculateEwaldUsingCkLoop(dummyMsg *msg, int yield_num);
@@ -1764,7 +1760,7 @@ public:
   void calcEnergy(const CkCallback& cb);
   /// add new particle
   void newParticle(GravityParticle *p);
-  void adjustTreePointers(GenericTreeNode *node, GravityParticle *newParts);
+  void adjustTreePointers(Tree::GenericTreeNode *node, GravityParticle *newParts);
   /// Count add/deleted particles, and compact main particle storage.
   void colNParts(const CkCallback &cb);
   /// Assign iOrders to recently added particles.
@@ -1827,8 +1823,8 @@ public:
   /********ORB Tree**********/
   //void receiveBoundingBoxes(BoundingBoxes *msg);
   void startORBTreeBuild(CkReductionMsg* m);
-  OrientedBox<float> constructBoundingBox(GenericTreeNode *node,int level, int numChild);
-  void buildORBTree(GenericTreeNode * node, int level);
+  OrientedBox<float> constructBoundingBox(Tree::GenericTreeNode *node,int level, int numChild);
+  void buildORBTree(Tree::GenericTreeNode * node, int level);
   /**************************/
 
   /// When the node is found to be NULL, forward the request
@@ -1908,10 +1904,10 @@ public:
 	 * which requested it with this new node.
 	*/
 #if 0
-	void receiveNode(GenericTreeNode &node, int chunk, unsigned int reqID);
+	void receiveNode(Tree::GenericTreeNode &node, int chunk, unsigned int reqID);
 #endif
 	/// @brief Find the key in the KeyTable, and copy the node over the passed pointer
-	const GenericTreeNode* lookupNode(Tree::NodeKey key);
+	const Tree::GenericTreeNode* lookupNode(Tree::NodeKey key);
 	/// Find the particles starting at "begin", and return a pointer to it
 	const GravityParticle* lookupParticles(int begin);
 
@@ -1925,12 +1921,12 @@ public:
 	 * where it had been interrupted. It will possibly made other remote
 	 * requests.
 	 */
-	void cachedWalkBucketTree(GenericTreeNode* node, int chunk, int reqID);
+	void cachedWalkBucketTree(Tree::GenericTreeNode* node, int chunk, int reqID);
 
 #if INTERLIST_VER > 0
-	void calculateForcesNode(OffsetNode node, GenericTreeNode *myNode,
+	void calculateForcesNode(OffsetNode node, Tree::GenericTreeNode *myNode,
 				 int level,int chunk);
-	void calculateForces(OffsetNode node, GenericTreeNode *myNode,
+	void calculateForces(OffsetNode node, Tree::GenericTreeNode *myNode,
 			     int level,int chunk);
 #endif
 
@@ -1986,13 +1982,13 @@ public:
   void nextBucketUsingCkLoop(dummyMsg *m);
 
 	void report();
-	void printTreeViz(GenericTreeNode* node, std::ostream& os);
-	void printTree(GenericTreeNode* node, std::ostream& os);
+	void printTreeViz(Tree::GenericTreeNode* node, std::ostream& os);
+	void printTree(Tree::GenericTreeNode* node, std::ostream& os);
 	void pup(PUP::er& p);
 
         // jetley
         // need this in TreeWalk
-        GenericTreeNode *getRoot() {return root;}
+        Tree::GenericTreeNode *getRoot() {return root;}
         // need this in Compute
 	inline Vector3D<cosmoType> decodeOffset(int reqID) {
 	    int offsetcode = reqID >> 22;
@@ -2015,24 +2011,24 @@ public:
         // For merging of remote moment requests
         // before sending messages during tree building
         public:
-        void sendRequestForNonLocalMoments(GenericTreeNode *pickedNode);
+        void sendRequestForNonLocalMoments(Tree::GenericTreeNode *pickedNode);
         void mergeNonLocalRequestsDone();
         //void addTreeBuildMomentsClient(GenericTreeNode *targetNode, TreePiece *client, GenericTreeNode *clientNode);
-        std::map<NodeKey,NonLocalMomentsClientList>::iterator createTreeBuildMomentsEntry(GenericTreeNode *pickedNode);
+        std::map<Tree::NodeKey,NonLocalMomentsClientList>::iterator createTreeBuildMomentsEntry(Tree::GenericTreeNode *pickedNode);
 
 
         private:
         // XXX - hashtable instead of map
-        std::map<NodeKey,NonLocalMomentsClientList> nonLocalMomentsClients;
+        std::map<Tree::NodeKey,NonLocalMomentsClientList> nonLocalMomentsClients;
         bool localTreeBuildComplete;
         int getResponsibleIndex(int first, int last);
         
 
-        GenericTreeNode *boundaryParentReady(GenericTreeNode *parent);
-        void accumulateMomentsFromChild(GenericTreeNode *parent, GenericTreeNode *child);
+        Tree::GenericTreeNode *boundaryParentReady(Tree::GenericTreeNode *parent);
+        void accumulateMomentsFromChild(Tree::GenericTreeNode *parent, Tree::GenericTreeNode *child);
 
-        void deliverMomentsToClients(GenericTreeNode *);
-        void deliverMomentsToClients(const std::map<NodeKey,NonLocalMomentsClientList>::iterator &it);
+        void deliverMomentsToClients(Tree::GenericTreeNode *);
+        void deliverMomentsToClients(const std::map<Tree::NodeKey,NonLocalMomentsClientList>::iterator &it);
         void treeBuildComplete();
         void processRemoteRequestsForMoments();
         void sendParticlesDuringDD(bool withqd);
@@ -2052,7 +2048,7 @@ class LvArray : public CBase_LvArray {
 int decodeReqID(int);
 int encodeOffset(int reqID, int x, int y, int z);
 bool bIsReplica(int reqID);
-void printGenericTree(GenericTreeNode* node, std::ostream& os) ;
+void printGenericTree(Tree::GenericTreeNode* node, std::ostream& os) ;
 //bool compBucket(GenericTreeNode *ln,GenericTreeNode *rn);
 
 #ifdef REDUCTION_HELPER

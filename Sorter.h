@@ -25,7 +25,7 @@ struct OctDecompNode {
   {
   }
 
-  NodeKey key;
+  Tree::NodeKey key;
   
   OctDecompNode *children;
   int nchildren;
@@ -35,7 +35,7 @@ struct OctDecompNode {
   void makeSubTree(int refineLevel, CkVec<OctDecompNode*> *active);
   int64_t buildCounts();
   void deleteBeneath();
-  void combine(int thresh, vector<NodeKey> &finalKeys, vector<uint64_t> &counts);
+  void combine(int thresh, std::vector<Tree::NodeKey> &finalKeys, std::vector<uint64_t> &counts);
   void getLeafNodes(CkVec<OctDecompNode*> *activeNodes);
 };
 
@@ -84,7 +84,7 @@ class Sorter : public CBase_Sorter {
 	/// A flag telling if we're done yet.
 	bool sorted;
 
-	std::vector<NodeKey> nodeKeys;
+	std::vector<Tree::NodeKey> nodeKeys;
 	/// The histogram of counts for the last round of splitter keys.
 	std::vector<uint64_t> binCounts;
 	std::vector<unsigned int> binCountsGas;
@@ -139,7 +139,7 @@ class Sorter : public CBase_Sorter {
         /// The weights for all the keys returned by the weightBalance routine
         CkVec<int> zeros;
         /// The list of nodes opened by the last invocation of weightBalance
-        CkVec<NodeKey> nodesOpened;
+        CkVec<Tree::NodeKey> nodesOpened;
 
 	void adjustSplitters();
 	bool refineOctSplitting(int n, int64_t *count);
@@ -182,7 +182,7 @@ public:
 	 */
 	void startSorting(const CkGroupID& dataManagerID, const double toler, const CkCallback& cb, bool decompose);
 	void convertNodesToSplitters();
-	SFC::Key * convertNodesToSplittersRefine(int num, NodeKey* keys);
+	SFC::Key * convertNodesToSplittersRefine(int num, Tree::NodeKey* keys);
 	//void convertNodesToSplittersNoZeros(int num, NodeKey* nodeKeys, CkVec<int> &zero);
         /// @brief Collect the counts of particles in each domain
 	void collectEvaluations(CkReductionMsg* m);

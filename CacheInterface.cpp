@@ -9,7 +9,7 @@
 #include "Compute.h"
 #include "TreeWalk.h"
 
-static const int PAD_reply = sizeof(NodeKey);  // Assume this is bigger
+static const int PAD_reply = sizeof(Tree::NodeKey);  // Assume this is bigger
                                            // than a pointer
 
 EntryTypeGravityParticle::EntryTypeGravityParticle() {
@@ -73,7 +73,7 @@ void EntryTypeGravityParticle::callback(CkArrayID requestorID, CkArrayIndexMax &
 void TreePiece::fillRequestParticles(CkCacheRequestMsg<KeyType> *msg) {
   // the key used in the cache is shifted to the left of 1, this makes
   // a clear distinction between nodes and particles
-  const GenericTreeNode *bucket = lookupNode(msg->key >> 1);
+  const Tree::GenericTreeNode *bucket = lookupNode(msg->key >> 1);
   CkAssert(bucket != NULL);
   int total = sizeof(CacheParticle) + (bucket->lastParticle - bucket->firstParticle) * sizeof(ExternalGravityParticle);
   CkCacheFillMsg<KeyType> *reply = new (total) CkCacheFillMsg<KeyType>(msg->key);
@@ -198,7 +198,7 @@ void TreePiece::processReqSmoothParticles() {
     for(SmPartRequestType::iterator iter = smPartRequests.begin();
 	iter != smPartRequests.end();) {
 	KeyType bucketKey = iter->first;
-	const GenericTreeNode *bucket = lookupNode(bucketKey >> 1);
+	const Tree::GenericTreeNode *bucket = lookupNode(bucketKey >> 1);
         int nBucket = 0;
         for (unsigned int i=0; i<bucket->particleCount; ++i) {
             if(TYPETest(&myParticles[i+bucket->firstParticle],
@@ -267,7 +267,7 @@ void TreePiece::fillRequestSmoothParticles(CkCacheRequestMsg<KeyType> *msg) {
   
   // the key used in the cache is shifted to the left of 1, this makes
   // a clear distinction between nodes and particles
-  const GenericTreeNode *bucket = lookupNode(msg->key >> 1);
+  const Tree::GenericTreeNode *bucket = lookupNode(msg->key >> 1);
   
   int nBucket = 0;
   for (unsigned int i=0; i<bucket->particleCount; ++i) {
@@ -336,7 +336,7 @@ void TreePiece::flushSmoothParticles(CkCacheFillMsg<KeyType> *msg) {
 // Node Cache methods
 
 EntryTypeGravityNode::EntryTypeGravityNode() {
-  BinaryTreeNode node;
+  Tree::BinaryTreeNode node;
   // save the virtual function table.
   // Note that this is compiler dependent; also note that it is unused
   // at the moment -- see unpackSingle() below.

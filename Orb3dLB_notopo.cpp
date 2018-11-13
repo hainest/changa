@@ -22,8 +22,6 @@ void Orb3dLB_notopo::init() {
 
 //#define ORB3DLB_NOTOPO_DEBUG CkPrintf 
 
-using namespace std;
-
 CreateLBFunc_Def(Orb3dLB_notopo, "3d ORB mapping of tree piece space onto 3d processor mesh");
 
 Orb3dLB_notopo::Orb3dLB_notopo(const CkLBOptions &opt): CBase_Orb3dLB_notopo(opt)
@@ -45,7 +43,7 @@ void Orb3dLB_notopo::work(BaseLB::LDStats* stats)
   int nmig = stats->n_migrateobjs;
   double gstarttime = CkWallTimer();
 
-  vector<Event> tpEvents[NDIMS];
+  std::vector<Event> tpEvents[NDIMS];
   for(int i = 0; i < NDIMS; i++){
     tpEvents[i].reserve(numobjs);
   }
@@ -153,7 +151,7 @@ void Orb3dLB_notopo::work(BaseLB::LDStats* stats)
 
 }
 
-void Orb3dLB_notopo::pupDump(PUP::er &p, BaseLB::LDStats *stats, vector<Event> *tpEvents){
+void Orb3dLB_notopo::pupDump(PUP::er &p, BaseLB::LDStats *stats, std::vector<Event> *tpEvents){
   stats->pup(p);
   p|stats->count;
   for(int i = XDIM; i <= ZDIM; i++){

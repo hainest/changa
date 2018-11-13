@@ -13,15 +13,13 @@
 
 namespace TreeStuff {
 
-using namespace SFC;
-
 /// @brief Convert a Key into a printable string.
-inline std::string keyBits(const Key k, const int numBits) {
+inline std::string keyBits(const SFC::Key k, const int numBits) {
   std::ostringstream oss;
   //oss << "N";
   bool ready = false;
   for(int i = 0; i < numBits; i++) {
-    Key k2 = k & (static_cast<Key>(1) << (62 - i));
+    SFC::Key k2 = k & (static_cast<SFC::Key>(1) << (62 - i));
     if (ready) oss << (k2 ? 1 : 0);
     else if (k2 != 0) ready = true;
   }

@@ -2,10 +2,10 @@
 #include "DataManager.h"
 
 extern CProxy_TreePiece treeProxy; 
-const char *typeString(NodeType type);
+const char *typeString(Tree::NodeType type);
 
 /// @brief Obtain each TreePiece on this processor, and perform mergeWalk().
-void PETreeMerger::mergeNonLocalRequests(GenericTreeNode *root, TreePiece *treePiece){
+void PETreeMerger::mergeNonLocalRequests(Tree::GenericTreeNode *root, TreePiece *treePiece){
   submittedRoots.push_back(root);
   submittedTreePieces.push_back(treePiece);
 
@@ -32,30 +32,30 @@ void PETreeMerger::mergeNonLocalRequests(GenericTreeNode *root, TreePiece *treeP
 /// the picked node is nonlocal, then send the moment request.
 /// @param mergeList Vector of identical nodes.
 /// @param treePieceList Vector of treepieces on which those nodes reside.
-void PETreeMerger::mergeWalk(CkVec<GenericTreeNode*> &mergeList, CkVec<TreePiece*> &treePieceList){
+void PETreeMerger::mergeWalk(CkVec<Tree::GenericTreeNode*> &mergeList, CkVec<TreePiece*> &treePieceList){
   int nUnresolved;
   int pickedIndex;
-  GenericTreeNode *pickedNode = DataManager::pickNodeFromMergeList(mergeList.length(),&mergeList[0],nUnresolved,pickedIndex);
+  Tree::GenericTreeNode *pickedNode = DataManager::pickNodeFromMergeList(mergeList.length(),&mergeList[0],nUnresolved,pickedIndex);
 
-  ostringstream oss;
+  std::ostringstream oss;
   // picked node promises to give moments to others in need
   TreePiece *pickedTreePiece = treePieceList[pickedIndex];
   // make an entry in the table recording clients for nodes
   // only if there are any clients in the first place
   int numClients = 0;
   for(int i = 0; i < mergeList.length(); i++){
-    NodeType type = mergeList[i]->getType();
-    bool isRemote = (type == NonLocal || type == NonLocalBucket);
+    Tree::NodeType type = mergeList[i]->getType();
+    bool isRemote = (type == Tree::NonLocal || type == Tree::NonLocalBucket);
     if(i == pickedIndex || !isRemote) continue;
     numClients++;
   }
 
   if(numClients > 0){
-    std::map<NodeKey,NonLocalMomentsClientList>::iterator it;
+    std::map<Tree::NodeKey,NonLocalMomentsClientList>::iterator it;
     it = pickedTreePiece->createTreeBuildMomentsEntry(pickedNode);
     for(int i = 0; i < mergeList.length(); i++){
-      NodeType type = mergeList[i]->getType();
-      bool isRemote = (type == NonLocal || type == NonLocalBucket);
+      Tree::NodeType type = mergeList[i]->getType();
+      bool isRemote = (type == Tree::NonLocal || type == Tree::NonLocalBucket);
       if(i == pickedIndex || !isRemote) continue;
       it->second.addClient(NonLocalMomentsClient(treePieceList[i],mergeList[i]));
 
@@ -71,7 +71,7 @@ void PETreeMerger::mergeWalk(CkVec<GenericTreeNode*> &mergeList, CkVec<TreePiece
   }
 
 
-  if(pickedNode->getType() == NonLocal || pickedNode->getType() == NonLocalBucket){
+  if(pickedNode->getType() == Tree::NonLocal || pickedNode->getType() == Tree::NonLocalBucket){
     // this is the NonLocal node which will request moments
     // from the owner, and upon receiving them, will forward
     // them to the clients (see above)
@@ -82,9 +82,9 @@ void PETreeMerger::mergeWalk(CkVec<GenericTreeNode*> &mergeList, CkVec<TreePiece
   }
   else if(nUnresolved >= 1){
     // we only treat Boundary nodes as unresolved
-    CkAssert(pickedNode->getType() == Boundary);
+    CkAssert(pickedNode->getType() == Tree::Boundary);
 
-    CkVec<GenericTreeNode*> nextLevelMergeList;
+    CkVec<Tree::GenericTreeNode*> nextLevelMergeList;
     CkVec<TreePiece*> nextLevelTreePieceList;
 
     for(int i = 0; i < pickedNode->numChildren(); i++){

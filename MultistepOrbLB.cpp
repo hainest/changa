@@ -8,7 +8,7 @@
 
 extern CProxy_TreePiece treeProxy;
 CkpvExtern(int, _lb_obj_index);
-using namespace std;
+
 //#define ORB3DLB_NOTOPO_DEBUG CkPrintf
 
 CreateLBFunc_Def(MultistepOrbLB, "Works best with multistepped runs; uses Orb3D_notopo for larger steps, greedy otherwise");

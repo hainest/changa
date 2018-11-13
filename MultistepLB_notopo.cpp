@@ -9,7 +9,7 @@
 
 extern CProxy_TreePiece treeProxy;
 CkpvExtern(int, _lb_obj_index);
-using namespace std;
+
 //#define ORB3DLB_NOTOPO_DEBUG CkPrintf
 
 CreateLBFunc_Def(MultistepLB_notopo, "Works best with multistepped runs; uses Orb3D_notopo");
@@ -165,14 +165,14 @@ void MultistepLB_notopo::work2(BaseLB::LDStats *stats, int count){
   // to balance objects. it is NOT indexed by tree piece index
   // there are as many entries in it as there are
   // migratable (active) tree pieces
- vector<OrbObject> tp_array;
+ std::vector<OrbObject> tp_array;
  tp_array.resize(nmig);
 
   if (_lb_args.debug()>=2) {
     CkPrintf("[work2] ready tp_array data structure\n");
   }
 
- vector<Event> tpEvents[NDIMS];
+ std::vector<Event> tpEvents[NDIMS];
   for(int i = 0; i < NDIMS; i++){
     tpEvents[i].reserve(nmig);
   }

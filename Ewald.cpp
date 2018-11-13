@@ -69,7 +69,7 @@ void QEVAL(MultipoleMoments mom, double gam[], double dx, double dy,
 }
 #endif
 
-void TreePiece::BucketEwald(GenericTreeNode *req, int nReps,double fEwCut)
+void TreePiece::BucketEwald(Tree::GenericTreeNode *req, int nReps,double fEwCut)
 {
 #ifndef BENCHMARK_NO_WORK
 	GravityParticle *p;
@@ -418,7 +418,7 @@ void TreePiece::EwaldGPU() {
   	int IDXend = 0;
   	int IDXstart = 0;
   	for(int b = 0; b < numBuckets; b++){
-  		GenericTreeNode *bucketNode = bucketList[b];
+  		Tree::GenericTreeNode *bucketNode = bucketList[b];
   		GravityParticle *buckparts = bucketNode->particlePointer;
   		IDXstart = bucketNode->firstParticle; 
 	    IDXend = bucketNode->lastParticle;

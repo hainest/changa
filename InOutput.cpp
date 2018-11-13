@@ -15,10 +15,6 @@
 #include <errno.h>
 #include <float.h>
 
-using namespace TypeHandling;
-using namespace SFC;
-using namespace std;
-
 template <typename TPos, typename TVel>
 void load_tipsy_gas(Tipsy::TipsyReader &r, GravityParticle &p, double dTuFac) 
 {
@@ -138,7 +134,7 @@ void TreePiece::loadTipsy(const std::string& filename,
 
 	Tipsy::TipsyReader r(filename, bDoublePos, bDoubleVel);
 	if(!r.status()) {
-		cerr << thisIndex << ": TreePiece: Fatal: Couldn't open tipsy file!" << endl;
+		std::cerr << thisIndex << ": TreePiece: Fatal: Couldn't open tipsy file!" << endl;
 		cb.send(0);	// Fire off callback
 		return;
 	}
@@ -230,7 +226,7 @@ void TreePiece::loadTipsy(const std::string& filename,
         nStartRead = startParticle;
 	
 	if(verbosity > 2)
-		cerr << "TreePiece " << thisIndex << " PE " << CkMyPe() << " Taking " << myNumParticles
+		std::cerr << "TreePiece " << thisIndex << " PE " << CkMyPe() << " Taking " << myNumParticles
 		     << " of " << nTotalParticles
 		     << " particles: [" << startParticle << "," << startParticle+myNumParticles << ")" << endl;
 
@@ -326,8 +322,8 @@ void TreePiece::loadTipsy(const std::string& filename,
 #endif
 		boundingBox.grow(myParticles[i+1].position);
 	}
-  myParticles[0].key = firstPossibleKey;
-  myParticles[myNumParticles+1].key = lastPossibleKey;
+  myParticles[0].key = SFC::firstPossibleKey;
+  myParticles[myNumParticles+1].key = SFC::lastPossibleKey;
   contribute(cb);
 }
 
@@ -471,7 +467,7 @@ static void *readFieldData(const std::string filename, FieldHeader &fh, unsigned
 {
     FILE* infile = CmiFopen(filename.c_str(), "rb");
     if(!infile) {
-	string smess("Couldn't open field file: ");
+	std::string smess("Couldn't open field file: ");
 	smess += filename;
 	throw XDRException(smess);
 	}
@@ -512,10 +508,10 @@ static void load_NC_base(std::string filename, int64_t startParticle,
         startParticle);
     for(int i = 0; i < myNum; ++i) {
 	switch(fh.code) {
-	case float32:
+	case TypeHandling::float32:
             myParts[i].position = static_cast<Vector3D<float> *>(data)[i];
 	    break;
-	case float64:
+	case TypeHandling::float64:
             myParts[i].position = static_cast<Vector3D<double> *>(data)[i];
 	    break;
 	default:
@@ -530,10 +526,10 @@ static void load_NC_base(std::string filename, int64_t startParticle,
         startParticle);
     for(int i = 0; i < myNum; ++i) {
 	switch(fh.code) {
-	case float32:
+	case TypeHandling::float32:
             myParts[i].velocity = static_cast<Vector3D<float> *>(data)[i];
 	    break;
-	case float64:
+	case TypeHandling::float64:
             myParts[i].velocity = static_cast<Vector3D<double> *>(data)[i];
 	    break;
 	default:
@@ -549,10 +545,10 @@ static void load_NC_base(std::string filename, int64_t startParticle,
         startParticle);
     for(int i = 0; i < myNum; ++i) {
 	switch(fh.code) {
-	case float32:
+	case TypeHandling::float32:
             myParts[i].mass = static_cast<float *>(data)[i];
 	    break;
-	case float64:
+	case TypeHandling::float64:
             myParts[i].mass = static_cast<double *>(data)[i];
 	    break;
 	default:
@@ -568,13 +564,13 @@ static void load_NC_base(std::string filename, int64_t startParticle,
         startParticle);
     for(int i = 0; i < myNum; ++i) {
 	switch(fh.code) {
-	case float32:
+	case TypeHandling::float32:
             myParts[i].soft = static_cast<float *>(data)[i];
 #ifdef CHANGESOFT
             myParts[i].fSoft0 = static_cast<float *>(data)[i];
 #endif
 	    break;
-	case float64:
+	case TypeHandling::float64:
             myParts[i].soft = static_cast<double *>(data)[i];
 #ifdef CHANGESOFT
             myParts[i].fSoft0 = static_cast<double *>(data)[i];
@@ -637,10 +633,10 @@ static void load_NC_gas(std::string filename, int64_t startParticle,
                                startParticle);
     for(int i = 0; i < myNumSPH; ++i) {
 	switch(fh.code) {
-	case float32:
+	case TypeHandling::float32:
             myParts[i].fDensity = static_cast<float *>(data)[i];
 	    break;
-	case float64:
+	case TypeHandling::float64:
             myParts[i].fDensity = static_cast<double *>(data)[i];
 	    break;
 	default:
@@ -657,10 +653,10 @@ static void load_NC_gas(std::string filename, int64_t startParticle,
                                startParticle);
     for(int i = 0; i < myNumSPH; ++i) {
 	switch(fh.code) {
-	case float32:
+	case TypeHandling::float32:
             myParts[i].fMFracOxygen() = static_cast<float *>(data)[i];
 	    break;
-	case float64:
+	case TypeHandling::float64:
             myParts[i].fMFracOxygen() = static_cast<double *>(data)[i];
 	    break;
 	default:
@@ -678,10 +674,10 @@ static void load_NC_gas(std::string filename, int64_t startParticle,
                                startParticle);
     for(int i = 0; i < myNumSPH; ++i) {
 	switch(fh.code) {
-	case float32:
+	case TypeHandling::float32:
             myParts[i].fMFracIron() = static_cast<float *>(data)[i];
 	    break;
-	case float64:
+	case TypeHandling::float64:
             myParts[i].fMFracIron() = static_cast<double *>(data)[i];
 	    break;
 	default:
@@ -698,10 +694,10 @@ static void load_NC_gas(std::string filename, int64_t startParticle,
                                startParticle);
     for(int i = 0; i < myNumSPH; ++i) {
 	switch(fh.code) {
-	case float32:
+	case TypeHandling::float32:
             myParts[i].u() = dTuFac*static_cast<float *>(data)[i];
 	    break;
-	case float64:
+	case TypeHandling::float64:
             myParts[i].u() = dTuFac*static_cast<double *>(data)[i];
 	    break;
 	default:
@@ -753,10 +749,10 @@ static void load_NC_star(std::string filename, int64_t startParticle,
                                startParticle);
     for(int i = 0; i < myNumStar; ++i) {
 	switch(fh.code) {
-	case float32:
+	case TypeHandling::float32:
             myParts[i].fStarMFracOxygen() = static_cast<float *>(data)[i];
 	    break;
-	case float64:
+	case TypeHandling::float64:
             myParts[i].fStarMFracOxygen() = static_cast<double *>(data)[i];
 	    break;
 	default:
@@ -772,10 +768,10 @@ static void load_NC_star(std::string filename, int64_t startParticle,
                                startParticle);
     for(int i = 0; i < myNumStar; ++i) {
 	switch(fh.code) {
-	case float32:
+	case TypeHandling::float32:
             myParts[i].fStarMFracIron() = static_cast<float *>(data)[i];
 	    break;
-	case float64:
+	case TypeHandling::float64:
             myParts[i].fStarMFracIron() = static_cast<double *>(data)[i];
 	    break;
 	default:
@@ -791,10 +787,10 @@ static void load_NC_star(std::string filename, int64_t startParticle,
                                startParticle);
     for(int i = 0; i < myNumStar; ++i) {
 	switch(fh.code) {
-	case float32:
+	case TypeHandling::float32:
             myParts[i].fTimeForm() = static_cast<float *>(data)[i];
 	    break;
-	case float64:
+	case TypeHandling::float64:
             myParts[i].fTimeForm() = static_cast<double *>(data)[i];
 	    break;
 	default:
@@ -897,7 +893,7 @@ void TreePiece::loadNChilada(const std::string& filename,
         nStartRead = startParticle;
 	
 	if(verbosity > 2)
-		cerr << "TreePiece " << thisIndex << " PE " << CkMyPe() << " Taking " << myNumParticles
+		std::cerr << "TreePiece " << thisIndex << " PE " << CkMyPe() << " Taking " << myNumParticles
 		     << " of " << nTotalParticles
 		     << " particles: [" << startParticle << "," << startParticle+myNumParticles << ")" << endl;
 
@@ -964,8 +960,8 @@ void TreePiece::loadNChilada(const std::string& filename,
             boundingBox.grow(myParticles[i+1].position);
         }
         
-  myParticles[0].key = firstPossibleKey;
-  myParticles[myNumParticles+1].key = lastPossibleKey;
+  myParticles[0].key = SFC::firstPossibleKey;
+  myParticles[myNumParticles+1].key = SFC::lastPossibleKey;
   contribute(cb);
 }
 
@@ -984,16 +980,16 @@ void TreePiece::readFloatBinary(OutputParams& params, int bParaRead,
             1, myNumSPH, nStartRead);
         for(int i = 0; i < myNumSPH; ++i) {
             switch(fh.code) {
-            case int32:
+            case TypeHandling::int32:
                 params.setIValue(&myParticles[i+1], static_cast<int *>(data)[i]);
                 break;
-            case int64:
+            case TypeHandling::int64:
                 params.setIValue(&myParticles[i+1], static_cast<int64_t *>(data)[i]);
                 break;
-            case float32:
+            case TypeHandling::float32:
                 params.setDValue(&myParticles[i+1], static_cast<float *>(data)[i]);
                 break;
-            case float64:
+            case TypeHandling::float64:
                 params.setDValue(&myParticles[i+1], static_cast<double *>(data)[i]);
                 break;
             default:
@@ -1010,16 +1006,16 @@ void TreePiece::readFloatBinary(OutputParams& params, int bParaRead,
             1, myNumDark, startParticle);
         for(int i = 0; i < myNumDark; ++i) {
             switch(fh.code) {
-            case int32:
+            case TypeHandling::int32:
                 params.setIValue(&myParticles[myNumSPH+i+1], static_cast<int *>(data)[i]);
                 break;
-            case int64:
+            case TypeHandling::int64:
                 params.setIValue(&myParticles[myNumSPH+i+1], static_cast<int64_t *>(data)[i]);
                 break;
-            case float32:
+            case TypeHandling::float32:
                 params.setDValue(&myParticles[myNumSPH+i+1], static_cast<float *>(data)[i]);
                 break;
-            case float64:
+            case TypeHandling::float64:
                 params.setDValue(&myParticles[myNumSPH+i+1], static_cast<double *>(data)[i]);
                 break;
             default:
@@ -1036,16 +1032,16 @@ void TreePiece::readFloatBinary(OutputParams& params, int bParaRead,
             1, myNumStar, startParticle);
         for(int i = 0; i < myNumStar; ++i) {
             switch(fh.code) {
-            case int32:
+            case TypeHandling::int32:
                 params.setIValue(&myParticles[myNumSPH+myNumDark+i+1], static_cast<int *>(data)[i]);
                 break;
-            case int64:
+            case TypeHandling::int64:
                 params.setIValue(&myParticles[myNumSPH+myNumDark+i+1], static_cast<int64_t *>(data)[i]);
                 break;
-            case float32:
+            case TypeHandling::float32:
                 params.setDValue(&myParticles[myNumSPH+myNumDark+i+1], static_cast<float *>(data)[i]);
                 break;
-            case float64:
+            case TypeHandling::float64:
                 params.setDValue(&myParticles[myNumSPH+myNumDark+i+1], static_cast<double *>(data)[i]);
                 break;
             default:
@@ -1491,7 +1487,7 @@ void TreePiece::reOrder(int64_t _nMaxOrder, const CkCallback& cb)
 
     if (myNumParticles > 0) {
 	// Sort particles in iOrder
-	sort(myParticles+1, myParticles+myNumParticles+1, compIOrder);
+	std::sort(myParticles+1, myParticles+myNumParticles+1, compIOrder);
 
 	// Tag boundary particle to avoid overruns
 	myParticles[myNumParticles+1].iOrder = nMaxOrder+1;
@@ -1717,7 +1713,7 @@ void TreePiece::ioAcceptSortedParticles(ParticleShuffleMsg *shuffleMsg) {
 	    }
 	}
 
-    sort(myParticles+1, myParticles+myNumParticles+1, compIOrder);
+    std::sort(myParticles+1, myParticles+myNumParticles+1, compIOrder);
     //signify completion with a reduction
     if(verbosity>1) ckout << thisIndex <<" contributing to ioAccept particles"
 			  <<endl;
@@ -2194,9 +2190,9 @@ void Main::cbIOClosed(CkMessage *msg)
         
         fh.time = pOutput->dTime;
         if(pOutput->bFloat)
-            fh.code = Type2Code<float>::code;
+            fh.code = TypeHandling::Type2Code<float>::code;
         else
-            fh.code = Type2Code<int64_t>::code;
+            fh.code = TypeHandling::Type2Code<int64_t>::code;
         if(pOutput->bVector)
             fh.dimensions = 3;
         else
@@ -2376,9 +2372,9 @@ void TreePiece::outputBinary(Ck::IO::Session session, OutputParams& params)
             fh.numParticles = 0;
             fh.dimensions = 0;
             if(params.bFloat)
-                fh.code = Type2Code<float>::code;
+                fh.code = TypeHandling::Type2Code<float>::code;
             else
-                fh.code = Type2Code<int64_t>::code;
+                fh.code = TypeHandling::Type2Code<int64_t>::code;
             xdr_template(&xdrs, &fh);
             if(params.bFloat) {
                 if(params.bVector) {

@@ -55,8 +55,6 @@ extern char *optarg;
 extern int optind, opterr, optopt;
 extern const char * const Cha_CommitID;
 
-using namespace std;
-
 /// @brief Proxy for Charm Main Chare
 CProxy_Main mainChare;
 /// @brief verbosity level.  Higher is more verbose.
@@ -107,7 +105,7 @@ double dGlassDamper;    // Damping inverse timescale for making glasses
 int iGasModel; 			///< For backward compatibility
 int peanoKey;
 /// @brief type of tree to use.
-GenericTrees useTree;
+Tree::GenericTrees useTree;
 /// @brief A potentially optimized proxy for the tree pieces.  Its use
 /// is deprecated.
 CProxy_TreePiece streamingProxy;
@@ -1242,10 +1240,10 @@ Main::Main(CkArgMsg* m) {
 
 	// hardcoding some parameters, later may be full options
 	if(domainDecomposition==ORB_dec || domainDecomposition==ORB_space_dec){
-	    useTree = Binary_ORB;
+	    useTree = Tree::Binary_ORB;
 	    // CkAbort("ORB decomposition known to be bad and not implemented");
 	    }
-	else { useTree = Binary_Oct; }
+	else { useTree = Tree::Binary_Oct; }
 
 #define xstr(s) str(s)
 #define str(s) #s
@@ -1528,12 +1526,12 @@ void Main::getOutTimes()
     int ret;
     double z,a,n,t;
     char achIn[80];
-    string achFileName = string(param.achOutName) + ".red";
+    std::string achFileName = std::string(param.achOutName) + ".red";
 	
     fp = fopen(achFileName.c_str(),"r");
     if (!fp) {
 	if (verbosity && param.csm->bComove)
-	    cerr << "WARNING: Could not open redshift input file: "
+		std::cerr << "WARNING: Could not open redshift input file: "
 		 << achFileName << endl;
 	return;
 	}
@@ -1545,7 +1543,7 @@ void Main::getOutTimes()
 	switch (achIn[0]) {
 	case 'z':
             if(!param.csm->bComove) {
-                cerr << "WARNING: output redshift invalid in non-comoving coordinates" << endl;
+            	std::cerr << "WARNING: output redshift invalid in non-comoving coordinates" << endl;
                 break;
                 }
 	    ret = sscanf(&achIn[1],"%lf",&z);
@@ -1555,7 +1553,7 @@ void Main::getOutTimes()
 	    break;
 	case 'a':
             if(!param.csm->bComove) {
-                cerr << "WARNING: output expansion invalid in non-comoving coordinates" << endl;
+            	std::cerr << "WARNING: output expansion invalid in non-comoving coordinates" << endl;
                 break;
                 }
 	    ret = sscanf(&achIn[1],"%lf",&a);
@@ -1574,7 +1572,7 @@ void Main::getOutTimes()
 	    break;
 	default:
             if(!param.csm->bComove) {
-                cerr << "WARNING: output redshift invalid in non-comoving coordinates" << endl;
+            	std::cerr << "WARNING: output redshift invalid in non-comoving coordinates" << endl;
                 break;
                 }
 	    ret = sscanf(achIn,"%lf",&z);
@@ -2295,12 +2293,12 @@ void Main::setupICs() {
   
   param.externalGravity.CheckParams(prm, param);
 
-  string achLogFileName = string(param.achOutName) + ".log";
-  ofstream ofsLog;
+  std::string achLogFileName = std::string(param.achOutName) + ".log";
+  std::ofstream ofsLog;
   if(bIsRestarting)
-      ofsLog.open(achLogFileName.c_str(), ios_base::app);
+      ofsLog.open(achLogFileName.c_str(), std::ios_base::app);
   else
-      ofsLog.open(achLogFileName.c_str(), ios_base::trunc);
+      ofsLog.open(achLogFileName.c_str(), std::ios_base::trunc);
   if(!ofsLog)
       CkAbort("Error opening log file.");
       
@@ -2427,7 +2425,7 @@ void Main::setupICs() {
 #endif
   ofsLog << endl;
   ofsLog << "# Key sizes: " << sizeof(KeyType) << " bytes particle "
-         << sizeof(NodeKey) << " bytes node" << endl;
+         << sizeof(Tree::NodeKey) << " bytes node" << endl;
 
   // Print out load balance information
   LBDatabase *lbdb = LBDatabaseObj();
@@ -2449,7 +2447,7 @@ void Main::setupICs() {
 	
   prmLogParam(prm, achLogFileName.c_str());
 	
-  ofsLog.open(achLogFileName.c_str(), ios_base::app);
+  ofsLog.open(achLogFileName.c_str(), std::ios_base::app);
   if(param.csm->bComove) {
       ofsLog << "# RedOut:";
       if(vdOutTime.size() == 0) ofsLog << " none";
@@ -2528,8 +2526,8 @@ Main::restart(CkCheckpointStatusMsg *msg)
 #undef str
 #undef xstr
 	ckout << "Restarting at " << param.iStartStep << endl;
-	string achLogFileName = string(param.achOutName) + ".log";
-	ofstream ofsLog(achLogFileName.c_str(), ios_base::app);
+	std::string achLogFileName = std::string(param.achOutName) + ".log";
+	std::ofstream ofsLog(achLogFileName.c_str(), std::ios_base::app);
 	ofsLog << "# ReStarting ChaNGa commit " << Cha_CommitID << endl;
 	ofsLog << "#";
 	for (int i = 0; i < CmiGetArgc(args->argv); i++)
@@ -2645,7 +2643,7 @@ Main::restart(CkCheckpointStatusMsg *msg)
         if(msg->status != CK_CHECKPOINT_SUCCESS)
             CkAbort("Checkpoint failed! Is there a disk problem?\n");
 
-	ofstream ofsCheck("lastcheckpoint", ios_base::trunc);
+	std::ofstream ofsCheck("lastcheckpoint", std::ios_base::trunc);
 	ofsCheck << bChkFirst << endl;
 	if(iStop)
 	    CkExit();
@@ -2716,7 +2714,7 @@ Main::initialForces()
   treeProxy.finishNodeCache(CkCallbackResumeThread());
 
   // Initial Log entry
-  string achLogFileName = string(param.achOutName) + ".log";
+  std::string achLogFileName = std::string(param.achOutName) + ".log";
   calcEnergy(dTime, CkWallTimer() - startTime, achLogFileName.c_str());
 
 #if COSMO_STATS > 0
@@ -2772,7 +2770,7 @@ void
 Main::doSimulation()
 {
   double startTime;
-  string achLogFileName = string(param.achOutName) + ".log";
+  std::string achLogFileName = std::string(param.achOutName) + ".log";
 
 #ifdef CHECK_TIME_WITHIN_BIGSTEP
   wallTimeStart = CkWallTimer();
@@ -2826,7 +2824,7 @@ Main::doSimulation()
     
     if((param.bBenchmark == 0)
        && (iStop || (param.iCheckInterval && iStep%param.iCheckInterval == 0))) {
-	string achCheckFileName(param.achOutName);
+	std::string achCheckFileName(param.achOutName);
 	if(bChkFirst) {
 	    achCheckFileName += ".chk0";
 	    bChkFirst = 0;
@@ -2853,7 +2851,7 @@ Main::doSimulation()
   /******** Shutdown process ********/
 
   if(param.nSteps == 0) {
-      string achFile = string(param.achOutName) + ".000000";
+	  std::string achFile = std::string(param.achOutName) + ".000000";
       // assign each particle its domain for diagnostic.
       treeProxy.assignDomain(CkCallbackResumeThread());
 
@@ -2887,17 +2885,17 @@ Main::doSimulation()
               if(safeMkdir(achFile.c_str()) != 0)
                   CkAbort("Can't create N-Chilada directories\n");
               if(nTotalSPH > 0) {
-                    string dirname(string(achFile) + "/gas");
+                    std::string dirname(std::string(achFile) + "/gas");
                     if(safeMkdir(dirname.c_str()) != 0)
                         CkAbort("Can't create N-Chilada directories\n");
                     }
               if(nTotalDark > 0) {
-                    string dirname(string(achFile) + "/dark");
+                    std::string dirname(std::string(achFile) + "/dark");
                     if(safeMkdir(dirname.c_str()) != 0)
                         CkAbort("Can't create N-Chilada directories\n");
                     }
               if(nTotalStar > 0) {
-                    string dirname(string(achFile) + "/star");
+                    std::string dirname(std::string(achFile) + "/star");
                     if(safeMkdir(dirname.c_str()) != 0)
                         CkAbort("Can't create N-Chilada directories\n");
                     }
@@ -3135,7 +3133,7 @@ void Main::starCenterOfMass()
 void
 Main::writeTimings(int iStep)
 {
-    string achTimeFileName = string(param.achOutName) + ".timings";
+    std::string achTimeFileName = std::string(param.achOutName) + ".timings";
     timing_fields tTotal;
     tTotal.clear();
     
@@ -3342,17 +3340,17 @@ void Main::writeOutput(int iStep)
         if(safeMkdir(achFile) != 0)
             CkAbort("Can't create N-Chilada directories\n");
         if(nTotalSPH > 0) {
-            string dirname(string(achFile) + "/gas");
+        	std::string dirname(std::string(achFile) + "/gas");
             if(safeMkdir(dirname.c_str()) != 0)
                 CkAbort("Can't create N-Chilada directories\n");
             }
         if(nTotalDark > 0) {
-            string dirname(string(achFile) + "/dark");
+        	std::string dirname(std::string(achFile) + "/dark");
             if(safeMkdir(dirname.c_str()) != 0)
                 CkAbort("Can't create N-Chilada directories\n");
             }
         if(nTotalStar > 0) {
-            string dirname(string(achFile) + "/star");
+        	std::string dirname(std::string(achFile) + "/star");
             if(safeMkdir(dirname.c_str()) != 0)
                 CkAbort("Can't create N-Chilada directories\n");
             }
@@ -3632,7 +3630,7 @@ void Main::writeOutput(int iStep)
 	    ckout << "Outputting densities ...";
 	    }
 	startTime = CkWallTimer();
-	DenOutputParams pDenOut(string(achFile), param.iBinaryOut, dOutTime);
+	DenOutputParams pDenOut(std::string(achFile), param.iBinaryOut, dOutTime);
 	if (param.iBinaryOut)
 	    outputBinary(pDenOut, param.bParaWrite, CkCallbackResumeThread());
 	else
@@ -4203,9 +4201,9 @@ void Main::turnProjectionsOff(){
 }
 #endif
 
-const char *typeString(NodeType type);
+const char *typeString(Tree::NodeType type);
 
-void GenericTreeNode::getGraphViz(std::ostream &out){
+void Tree::GenericTreeNode::getGraphViz(std::ostream &out){
 #ifdef BIGKEYS
   uint64_t lower = getKey();
   uint64_t upper = getKey() >> 64;
@@ -4225,9 +4223,9 @@ void GenericTreeNode::getGraphViz(std::ostream &out){
     << "\"];"
     << std::endl;
 
-  if(getType() == Boundary){
+  if(getType() == Tree::Boundary){
     for(int i = 0; i < numChildren(); i++){
-      GenericTreeNode *child = getChildren(i);
+      Tree::GenericTreeNode *child = getChildren(i);
 #ifdef BIGKEYS
       uint64_t ch_lower = getKey();
       uint64_t ch_upper = getKey() >> 64;
@@ -4239,10 +4237,10 @@ void GenericTreeNode::getGraphViz(std::ostream &out){
   }
 }
 
-void printTreeGraphVizRecursive(GenericTreeNode *node, ostream &out){
+void printTreeGraphVizRecursive(Tree::GenericTreeNode *node, std::ostream &out){
   node->getGraphViz(out);
   out << endl;
-  if(node->getType() == Boundary){
+  if(node->getType() == Tree::Boundary){
     for(int i = 0; i < node->numChildren(); i++){
       printTreeGraphVizRecursive(node->getChildren(i),out);
     }
@@ -4250,7 +4248,7 @@ void printTreeGraphVizRecursive(GenericTreeNode *node, ostream &out){
 }
 
 /// @brief Print a visualization of a tree.
-void printTreeGraphViz(GenericTreeNode *node, ostream &out, const string &name){
+void printTreeGraphViz(Tree::GenericTreeNode *node, std::ostream &out, const std::string &name){
   out << "digraph " << name << " {" << endl;
   printTreeGraphVizRecursive(node,out);
   out << "}" << endl;

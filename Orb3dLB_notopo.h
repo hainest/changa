@@ -20,7 +20,7 @@ BaseLB * AllocateOrb3dLB_notopo();
 class Orb3dLB_notopo : public CBase_Orb3dLB_notopo, public Orb3dCommon {
 private:
 
-  vector<OrbObject> tps;
+  std::vector<OrbObject> tps;
   // things are stored in here before work
   // is ever called.
 
@@ -28,7 +28,7 @@ private:
   bool QueryBalanceNow(int step);
   void printData(BaseLB::LDStats &stats, int phase, int *revObjMap);
 
-  void pupDump(PUP::er &, BaseLB::LDStats *, vector<Event> *);
+  void pupDump(PUP::er &, BaseLB::LDStats *, std::vector<Event> *);
 
 //  void orbPartition(vector<Event> *events, OrientedBox<float> &box, int procs);
 //  int partitionRatioLoad(vector<Event> &events, float ratio);

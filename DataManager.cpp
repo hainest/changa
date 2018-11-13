@@ -25,7 +25,7 @@ void hapi_clearInstrument();
 #include "Compute.h"
 #include "TreeWalk.h"
 
-void printTreeGraphViz(GenericTreeNode *node, ostream &out, const string &name);
+void printTreeGraphViz(Tree::GenericTreeNode *node, std::ostream &out, const std::string &name);
 
 DataManager::DataManager(const CkArrayID& treePieceID) {
   init();
@@ -177,18 +177,18 @@ void DataManager::combineLocalTrees(CkReductionMsg *msg) {
   if (totalChares > 0) {
 #ifdef PRINT_MERGED_TREE
     auto fout = make_formatted_string("cache.%d.dot",CkMyPe());
-    ofstream ofs(fout.c_str());
+    std::ofstream ofs(fout.c_str());
 #endif
 
 #ifdef PRINT_MERGED_TREE
     for(int i = 0; i < registeredTreePieces.length(); i++){
-      ostringstream oss;
-      ostringstream name;
+      std::ostringstream oss;
+      std::ostringstream name;
 
       oss << "tree." << registeredTreePieces[i].treePiece->getIndex() << "." << CkMyPe() << ".dot";
       name << "tree_" << registeredTreePieces[i].treePiece->getIndex();
 
-      ofstream ofs1;
+      std::ofstream ofs1;
       ofs1.open(oss.str().c_str());
       printTreeGraphViz(registeredTreePieces[i].root,ofs1,name.str());
       ofs1.close();
@@ -216,7 +216,7 @@ void DataManager::combineLocalTrees(CkReductionMsg *msg) {
 #endif
 
 #ifdef PRINT_MERGED_TREE
-    ostringstream dmName;
+    std::ostringstream dmName;
     dmName << "dm_" << CkMyNode();
 
     printTreeGraphViz(root,ofs,dmName.str());
@@ -266,7 +266,7 @@ void DataManager::combineLocalTrees(CkReductionMsg *msg) {
 /// @param gtn Array of equivalent nodes.
 /// @param nUnresolved Count of boundary nodes in the array (returned).
 /// @param pickedIndex Index of picked Node.
-Tree::GenericTreeNode *DataManager::pickNodeFromMergeList(int n, GenericTreeNode **gtn, int &nUnresolved, int &pickedIndex){
+Tree::GenericTreeNode *DataManager::pickNodeFromMergeList(int n, Tree::GenericTreeNode **gtn, int &nUnresolved, int &pickedIndex){
   int pick = -1;
   nUnresolved = 0;
 
@@ -300,7 +300,7 @@ Tree::GenericTreeNode *DataManager::pickNodeFromMergeList(int n, GenericTreeNode
   } 
 }
 
-const char *typeString(NodeType type);
+const char *typeString(Tree::NodeType type);
 /**
  * \brief Build common tree for all pieces in a node.
  *
@@ -322,7 +322,7 @@ Tree::GenericTreeNode *DataManager::buildProcessorTree(int n, Tree::GenericTreeN
 #endif
   int nUnresolved;
   int pickedIndex;
-  GenericTreeNode *pickedNode = pickNodeFromMergeList(n,gtn,nUnresolved,pickedIndex);
+  Tree::GenericTreeNode *pickedNode = pickNodeFromMergeList(n,gtn,nUnresolved,pickedIndex);
 
   /*
   ostringstream oss;
@@ -355,7 +355,7 @@ Tree::GenericTreeNode *DataManager::buildProcessorTree(int n, Tree::GenericTreeN
     for (int child=0; child<gtn[0]->numChildren(); ++child) {
       for (int i=0; i<n; ++i) {
         if (gtn[i]->getType() == Tree::Boundary){
-          GenericTreeNode *childNode = gtn[i]->getChildren(child);
+          Tree::GenericTreeNode *childNode = gtn[i]->getChildren(child);
           newgtn.push_back(childNode);
           //CkPrintf("[%d] (%llu,%s) add child (%llu,%s)\n", CkMyPe(), pickedNode->getKey(), typeString(pickedNode->getType()), childNode->getKey(), typeString(childNode->getType()));
         }
@@ -366,7 +366,7 @@ Tree::GenericTreeNode *DataManager::buildProcessorTree(int n, Tree::GenericTreeN
       if (ch->getType() == Tree::Boundary || ch->getType() == Tree::NonLocal || ch->getType() == Tree::NonLocalBucket) isInternal = false;
     }
     if (isInternal) {
-      newNode->setType(Internal);
+      newNode->setType(Tree::Internal);
     }
     return newNode;
   }
@@ -395,7 +395,7 @@ int DataManager::createLookupRoots(Tree::GenericTreeNode *node, Tree::NodeKey *k
       Tree::NodeKey childKey = node->getChildKey(i);
       for (partial=0; ; ++partial, ++keys) {
         int k;
-        for (k=0; k<NodeKeyBits-1; ++k) {
+        for (k=0; k<Tree::NodeKeyBits-1; ++k) {
           if (childKey == ((*keys)>>k)) break;
         }
         if (((*keys)|(~0 << k)) == ~0) break;
@@ -461,7 +461,7 @@ void DataManager::resetReadOnly(Parameters param, const CkCallback &cb)
 }
   
 	 
-const char *typeString(NodeType type);
+const char *typeString(Tree::NodeType type);
 
 #ifdef CUDA
 #include "HostCUDA.h"
@@ -620,7 +620,7 @@ void DataManager::donePrefetch(int chunk){
 typedef std::map<KeyType, CkCacheEntry<KeyType>*> cacheType;
 
 /// @brief add a node to the moment list and record its index
-static inline void addNodeToList(GenericTreeNode *nd,
+static inline void addNodeToList(Tree::GenericTreeNode *nd,
                                  CkVec<CudaMultipoleMoments> &list,
                                  int &index) {
     nd->nodeArrayIndex = index;
@@ -629,7 +629,7 @@ static inline void addNodeToList(GenericTreeNode *nd,
 }
 
 /// @brief add a node the moment list (using pointer) and record its index
-static inline void addNodeToListPtr(GenericTreeNode *nd,
+static inline void addNodeToListPtr(Tree::GenericTreeNode *nd,
                                     CkVec<CudaMultipoleMoments> *list,
                                     int &index) {
     nd->nodeArrayIndex = index;
@@ -640,7 +640,7 @@ static inline void addNodeToListPtr(GenericTreeNode *nd,
 /// @brief add a node with walk information to the moment list and
 /// record its index
 #ifdef GPU_LOCAL_TREE_WALK
-static inline void addTreeNodeToList(GenericTreeNode *nd,
+static inline void addTreeNodeToList(Tree::GenericTreeNode *nd,
                                      CkVec<CudaMultipoleMoments> &list,
                                      int &index) {
     nd->nodeArrayIndex = index;
@@ -652,11 +652,11 @@ static inline void addTreeNodeToList(GenericTreeNode *nd,
     }
 #endif //GPU_LOCAL_TREE_WALK
 
-const char *typeString(NodeType type);
+const char *typeString(Tree::NodeType type);
 
 /// @brief Create a vector of remote nodes from a remote prefetch.
-PendingBuffers *DataManager::serializeRemoteChunk(GenericTreeNode *node){
-  CkQ<GenericTreeNode *> queue;
+PendingBuffers *DataManager::serializeRemoteChunk(Tree::GenericTreeNode *node){
+  CkQ<Tree::GenericTreeNode *> queue;
   int chunk = savedChunk;
 
   int numTreePieces = registeredTreePieces.length();
@@ -700,32 +700,32 @@ PendingBuffers *DataManager::serializeRemoteChunk(GenericTreeNode *node){
 #endif
   queue.enq(node);
   while(!queue.isEmpty()){
-    GenericTreeNode *node = queue.deq();
-    NodeType type = node->getType();
+    Tree::GenericTreeNode *node = queue.deq();
+    Tree::NodeType type = node->getType();
 
-    if(type == Empty || type == CachedEmpty || type == Internal || type == Bucket){ // skip
+    if(type == Tree::Empty || type == Tree::CachedEmpty || type == Tree::Internal || type == Tree::Bucket){ // skip
       continue;
     }// B, NL, NLBu, CBu, C 
-    else if(type == Boundary){
+    else if(type == Tree::Boundary){
       // enqueue children
       for(int i = 0; i < node->numChildren(); i++){
-	GenericTreeNode *child = node->getChildren(i);
+	Tree::GenericTreeNode *child = node->getChildren(i);
 	queue.enq(child);
       }
     }
-    else if(type == NonLocal){
+    else if(type == Tree::NonLocal){
       // need node moments; also, must enqueue children so that complete list of 
       // used nodes can be obtained
         addNodeToListPtr(node,postPrefetchMoments,nodeIndex);
     }
-    else if(type == NonLocalBucket || type == CachedBucket){
-      if(type == CachedBucket){
+    else if(type == Tree::NonLocalBucket || type == Tree::CachedBucket){
+      if(type == Tree::CachedBucket){
           addNodeToListPtr(node,postPrefetchMoments,nodeIndex);
       }
       // if this is a NonLocalBucket, don't need node itself, just its particles
       ExternalGravityParticle *parts;
       int nParticles = node->lastParticle-node->firstParticle+1;
-      NodeKey key = node->getKey();
+      Tree::NodeKey key = node->getKey();
       // N.B. Key for particles is shifted to distinguish it from the Key
       // for the node.
       key <<= 1;
@@ -747,20 +747,20 @@ PendingBuffers *DataManager::serializeRemoteChunk(GenericTreeNode *node){
         }
       }
     }
-    else if(type == Cached){
+    else if(type == Tree::Cached){
       addNodeToListPtr(node,postPrefetchMoments,nodeIndex);
       // put children into queue, if available
       for(int i = 0 ; i < node->numChildren(); i++){
-	GenericTreeNode *child = node->getChildren(i);
+	Tree::GenericTreeNode *child = node->getChildren(i);
         if(child){// available to dm
     	  queue.enq(child);
         }
         else{ // look in cache
-    	  NodeKey childKey = node->getChildKey(i);
+    	  Tree::NodeKey childKey = node->getChildKey(i);
           cacheType::iterator p = ctNode->find(childKey);
           if (p != ctNode->end() && p->second->replyRecvd) {
             // found node, enqueue
-    	    queue.enq((GenericTreeNode *)p->second->data);
+    	    queue.enq((Tree::GenericTreeNode *)p->second->data);
     	  }
         }
       }
@@ -781,9 +781,9 @@ PendingBuffers *DataManager::serializeRemoteChunk(GenericTreeNode *node){
 
 /// @brief gather local nodes and particles and send to GPU
 /// @param node Root of tree to walk.
-void DataManager::serializeLocal(GenericTreeNode *node){
+void DataManager::serializeLocal(Tree::GenericTreeNode *node){
   /// queue for breadth first treewalk.
-  CkQ<GenericTreeNode *> queue;
+  CkQ<Tree::GenericTreeNode *> queue;
 
   int numTreePieces = registeredTreePieces.length();
   int numNodes = 0;
@@ -818,17 +818,17 @@ void DataManager::serializeLocal(GenericTreeNode *node){
   // Walk local tree
   queue.enq(node);
   while(!queue.isEmpty()){
-    GenericTreeNode *node = queue.deq();
-    NodeType type = node->getType();
+    Tree::GenericTreeNode *node = queue.deq();
+    Tree::NodeType type = node->getType();
 
 #ifdef CUDA_DM_PRINT_TREES
     //CkPrintf("Process [%d] %ld (%s)\n", CkMyPe(), node->getKey(), typeString(type));
 #endif
 
-    if(type == Empty || type == CachedEmpty){ // skip
+    if(type == Tree::Empty || type == Tree::CachedEmpty){ // skip
       continue;
     }
-    else if(type == Bucket || type == NonLocalBucket){ // NLB
+    else if(type == Tree::Bucket || type == Tree::NonLocalBucket){ // NLB
       // don't need the particles, only the moments
 #ifdef GPU_LOCAL_TREE_WALK
         addTreeNodeToList(node,localMoments,nodeIndex);
@@ -836,14 +836,14 @@ void DataManager::serializeLocal(GenericTreeNode *node){
         addNodeToList(node,localMoments,nodeIndex);
 #endif //GPU_LOCAL_TREE_WALK
     }
-    else if(type == Boundary || type == Internal){ // B,I 
+    else if(type == Tree::Boundary || type == Tree::Internal){ // B,I
 #ifdef GPU_LOCAL_TREE_WALK
         addTreeNodeToList(node,localMoments,nodeIndex);
 #else
         addNodeToList(node,localMoments,nodeIndex);
 #endif //GPU_LOCAL_TREE_WALK
       for(int i = 0; i < node->numChildren(); i++){
-        GenericTreeNode *child = node->getChildren(i);
+        Tree::GenericTreeNode *child = node->getChildren(i);
         queue.enq(child);
       }
     }
@@ -865,14 +865,14 @@ void DataManager::serializeLocal(GenericTreeNode *node){
     // set the bucketStart and bucketSize for each bucket Node
     if (tp->largePhase()) {
       for (int j = 0; j < tp->numBuckets; ++j) {
-          GenericTreeNode *bucketNode = tp->bucketList[j];
+          Tree::GenericTreeNode *bucketNode = tp->bucketList[j];
           int id = bucketNode->nodeArrayIndex;
           localMoments[id].bucketStart = bucketNode->bucketArrayIndex;
           localMoments[id].bucketSize = bucketNode->lastParticle - bucketNode->firstParticle + 1;
       }
     } else {
       for (int j = 0; j < tp->numBuckets; ++j) {
-          GenericTreeNode *bucketNode = tp->bucketList[j];
+          Tree::GenericTreeNode *bucketNode = tp->bucketList[j];
           int id = bucketNode->nodeArrayIndex;
           localMoments[id].bucketStart = tp->bucketActiveInfo[id].start;
           localMoments[id].bucketSize =  tp->bucketActiveInfo[id].size;
@@ -882,7 +882,7 @@ void DataManager::serializeLocal(GenericTreeNode *node){
     // tell each particle which node it belongs to
     CompactPartData *localParicalsVec = localParticles.getVec();
     for (int j = 0; j < tp->numBuckets; ++j) {
-      GenericTreeNode *bucketNode = tp->bucketList[j];
+      Tree::GenericTreeNode *bucketNode = tp->bucketList[j];
       int id = bucketNode->nodeArrayIndex;
       int start = localMoments[id].bucketStart;
       int end = start + localMoments[id].bucketSize;
@@ -939,13 +939,13 @@ void DataManager::serializeLocal(GenericTreeNode *node){
 
 #ifdef GPU_LOCAL_TREE_WALK
 // Add more information to each Moment, basically transform moment to a computable tree node
-void DataManager::transformLocalTreeRecursive(GenericTreeNode *node, CkVec<CudaMultipoleMoments>& localMoments) {
-  NodeType type = node->getType();
+void DataManager::transformLocalTreeRecursive(Tree::GenericTreeNode *node, CkVec<CudaMultipoleMoments>& localMoments) {
+  Tree::NodeType type = node->getType();
   int node_index = node->nodeArrayIndex;
 
-  if(type == Empty || type == CachedEmpty){ // skip
+  if(type == Tree::Empty || type == Tree::CachedEmpty){ // skip
     return;
-  } else if(type == Bucket || type == NonLocalBucket) {
+  } else if(type == Tree::Bucket || type == Tree::NonLocalBucket) {
     localMoments[node_index].type = (int)type;
     localMoments[node_index].nodeArrayIndex = node_index;
     localMoments[node_index].particleCount = node->particleCount;
@@ -955,7 +955,7 @@ void DataManager::transformLocalTreeRecursive(GenericTreeNode *node, CkVec<CudaM
     for (int i = 0; i < 2; i ++) {
       localMoments[node_index].children[i] = -1;
     }
-  } else if(type == Boundary || type == Internal){ // B,I
+  } else if(type == Tree::Boundary || type == Tree::Internal){ // B,I
     localMoments[node_index].type = (int)type;
     localMoments[node_index].nodeArrayIndex = node_index;
     localMoments[node_index].particleCount = node->particleCount;
@@ -967,7 +967,7 @@ void DataManager::transformLocalTreeRecursive(GenericTreeNode *node, CkVec<CudaM
       localMoments[node_index].children[i] = -1;
     }
     for(int i = 0; i < node->numChildren(); i++){
-      GenericTreeNode *child = node->getChildren(i);
+      Tree::GenericTreeNode *child = node->getChildren(i);
       int child_index = child->nodeArrayIndex;
       localMoments[node_index].children[i] = child_index;
       transformLocalTreeRecursive(child, localMoments);

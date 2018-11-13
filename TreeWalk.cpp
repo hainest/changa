@@ -10,7 +10,7 @@
 #include <string>
 #endif
 
-const char *typeString(NodeType type);
+const char *typeString(Tree::NodeType type);
 
 void TreeWalk::init(Compute *c, TreePiece *owner){
   comp = c;
@@ -21,7 +21,7 @@ void TreeWalk::reassoc(Compute *c){
   comp = c;
 }
 
-void TopDownTreeWalk::walk(GenericTreeNode *startNode, State *state, int chunk, int reqID, int awi){
+void TopDownTreeWalk::walk(Tree::GenericTreeNode *startNode, State *state, int chunk, int reqID, int awi){
 #ifdef BENCHMARK_TIME_WALK
   double startTime = CmiWallTimer();
 #endif
@@ -52,9 +52,9 @@ void TopDownTreeWalk::walk(GenericTreeNode *startNode, State *state, int chunk, 
 }
 
 #ifndef CHANGA_REFACTOR_WALKCHECK
-void TopDownTreeWalk::dft(GenericTreeNode *node, State *state, int chunk, int reqID, bool isRoot, int awi){
+void TopDownTreeWalk::dft(Tree::GenericTreeNode *node, State *state, int chunk, int reqID, bool isRoot, int awi){
 #else
-void TopDownTreeWalk::dft(GenericTreeNode *node, State *state, int chunk, int reqID, bool isRoot, int shift, bool doprint){
+void TopDownTreeWalk::dft(Tree::GenericTreeNode *node, State *state, int chunk, int reqID, bool isRoot, int shift, bool doprint){
 #endif
   int ret;
   if(node == NULL){   // something went wrong here
@@ -64,7 +64,7 @@ void TopDownTreeWalk::dft(GenericTreeNode *node, State *state, int chunk, int re
 #ifdef BENCHMARK_TIME_WALK
   double start1 = CmiWallTimer();
 #endif
-  NodeKey globalKey = node->getKey();
+  Tree::NodeKey globalKey = node->getKey();
   // process this node
   bool didcomp = false;
   ret = comp->doWork(node, this, state, chunk, reqID, isRoot, didcomp, awi);
@@ -74,7 +74,7 @@ void TopDownTreeWalk::dft(GenericTreeNode *node, State *state, int chunk, int re
 
 #ifdef CHANGA_REFACTOR_WALKCHECK
   if(doprint){
-    string s;
+    std::string s;
     for(int i = 0; i < shift; i++) s = s + " ";
     char *arr = "KD";
     char *c = "NY";
@@ -91,7 +91,7 @@ void TopDownTreeWalk::dft(GenericTreeNode *node, State *state, int chunk, int re
 #endif
   if(ret == KEEP){      // descend further down tree
     for(int i = 0; i < node->numChildren(); i++){
-      GenericTreeNode *child = node->getChildren(i);
+      Tree::GenericTreeNode *child = node->getChildren(i);
       globalKey = node->getChildKey(i);
 
       comp->startNodeProcessEvent(state);
@@ -110,7 +110,7 @@ void TopDownTreeWalk::dft(GenericTreeNode *node, State *state, int chunk, int re
 #endif
 #ifdef CHANGA_REFACTOR_WALKCHECK
         if(doprint){
-          string s;
+          std::string s;
           for(int j = 0; j < shift+2; j++) s = s + " ";
           CkPrintf("%s%ld SM\n", s.c_str(), node->getChildKey(i));
         }
@@ -124,7 +124,7 @@ void TopDownTreeWalk::dft(GenericTreeNode *node, State *state, int chunk, int re
           comp->nodeMissedEvent(reqID, chunk, state, ownerTP);
 #ifdef CHANGA_REFACTOR_WALKCHECK
           if(doprint){
-            string s;
+            std::string s;
             for(int j = 0; j < shift+2; j++) s = s + " ";
             CkPrintf("%s%ld HM\n", s.c_str(), node->getChildKey(i));
           }
@@ -153,26 +153,26 @@ void TopDownTreeWalk::dft(GenericTreeNode *node, State *state, int chunk, int re
   return;
 }
 
-void TopDownTreeWalk::bft(GenericTreeNode *node, State *state, int chunk, int reqID, bool isRoot, int awi){
+void TopDownTreeWalk::bft(Tree::GenericTreeNode *node, State *state, int chunk, int reqID, bool isRoot, int awi){
   int ret;
   if(node == NULL){   // something went wrong here
     ckerr << "TopDownTreeWalk recvd. null node - chunk("<<chunk<<"), reqID("<<reqID<<"), isRoot("<<isRoot<<")" << endl;
     CkAbort("Abort");
   }
 
-  CkQ<GenericTreeNode*> queue(1024);
+  CkQ<Tree::GenericTreeNode*> queue(1024);
   queue.enq(node);
 
   while (node = queue.deq()) {
 
-    NodeKey globalKey = node->getKey();
+    Tree::NodeKey globalKey = node->getKey();
     // process this node
     bool didcomp = false;
     ret = comp->doWork(node, this, state, chunk, reqID, isRoot, didcomp, awi);
 
     if(ret == KEEP){      // descend further down tree
       for(unsigned int i = 0; i < node->numChildren(); i++){
-        GenericTreeNode *child = node->getChildren(i);
+        Tree::GenericTreeNode *child = node->getChildren(i);
         globalKey = node->getChildKey(i);
 
         comp->startNodeProcessEvent(state);
@@ -213,14 +213,14 @@ bool bIsReplica(int reqID);
 /// Once the stack is processed, then all walks are done in the
 /// standard "top down" way.
 ///
-void BottomUpTreeWalk::walk(GenericTreeNode *startNode, State *state,
+void BottomUpTreeWalk::walk(Tree::GenericTreeNode *startNode, State *state,
 			    int chunk, int reqID, int awi){
     int reqIDlist = decodeReqID(reqID);
-    GenericTreeNode *reqnode = ownerTP->bucketList[reqIDlist];
+    Tree::GenericTreeNode *reqnode = ownerTP->bucketList[reqIDlist];
     int ret;
     bool didcomp = false;
     bool isRoot = false;
-    GenericTreeNode *node;
+    Tree::GenericTreeNode *node;
 
     node = startNode;
     if(bIsReplica(reqID) || node->getKey() != ownerTP->root->getKey()) {
@@ -231,13 +231,13 @@ void BottomUpTreeWalk::walk(GenericTreeNode *startNode, State *state,
 		  << endl;
 	    CkAbort("TreeWalk");
 	    }
-	NodeKey currentGlobalKey = node->getKey();
+	Tree::NodeKey currentGlobalKey = node->getKey();
 	// process this node
 	ret = comp->doWork(node, this, state, chunk, reqID, isRoot, didcomp,
 			   awi);
 	if(ret == KEEP){      // descend further down tree
 	    for(unsigned int i = 0; i < node->numChildren(); i++){
-		GenericTreeNode *child = node->getChildren(i);
+		Tree::GenericTreeNode *child = node->getChildren(i);
 		currentGlobalKey = node->getChildKey(i);
 
 		comp->startNodeProcessEvent(state);
@@ -266,7 +266,7 @@ void BottomUpTreeWalk::walk(GenericTreeNode *startNode, State *state,
 	comp->finishNodeProcessEvent(ownerTP, state);
 	return;
 	}
-    std::stack<GenericTreeNode *> nodeStack;
+    std::stack<Tree::GenericTreeNode *> nodeStack;
     // go down the tree toward the bucket, push all siblings of the
     // ancestor onto the stack.
     while(node != reqnode) {
@@ -294,7 +294,7 @@ void BottomUpTreeWalk::walk(GenericTreeNode *startNode, State *state,
 /// This walk interprets what is otherwise the 'reqID' argument as the targetBucketIndex
 /// It can only be called from the calculateGravityRemote/startNextBucket
 #if INTERLIST_VER > 0
-void LocalTargetWalk::walk(GenericTreeNode *ancestor, State *state, int chunk, int targetBucketIndex, int awi){
+void LocalTargetWalk::walk(Tree::GenericTreeNode *ancestor, State *state, int chunk, int targetBucketIndex, int awi){
 
     targetKey = ownerTP->getBucket(targetBucketIndex)->getKey();
     // construct lists
@@ -305,7 +305,7 @@ void LocalTargetWalk::walk(GenericTreeNode *ancestor, State *state, int chunk, i
 int reEncodeOffset(int reqID, int offsetID);
 
 // This walk interprets what is otherwise the 'reqID' argument as the targetBucketIndex
-void LocalTargetWalk::dft(GenericTreeNode *localNode, State *state, int chunk, int targetBucketIndex, bool isRoot, int awi, int level){
+void LocalTargetWalk::dft(Tree::GenericTreeNode *localNode, State *state, int chunk, int targetBucketIndex, bool isRoot, int awi, int level){
 
   bool descend = false;
   // localNode has changed, need to update computeEntity
@@ -384,7 +384,7 @@ void LocalTargetWalk::dft(GenericTreeNode *localNode, State *state, int chunk, i
   if(!myUndlistEmpty)
   {
     int which = localNode->whichChild(targetKey);
-    GenericTreeNode *child = localNode->getChildren(which);
+    Tree::GenericTreeNode *child = localNode->getChildren(which);
     CkAssert(child);
     dft(child, s, chunk, targetBucketIndex, false, awi, level+1);
   }
@@ -397,7 +397,7 @@ void LocalTargetWalk::dft(GenericTreeNode *localNode, State *state, int chunk, i
 }
 
 bool LocalTargetWalk::processNode(
-                   GenericTreeNode *glblNode,
+                   Tree::GenericTreeNode *glblNode,
                    State *state,
                    int chunk, int reqID,
                    bool isRoot, bool &didcomp,
@@ -433,19 +433,19 @@ bool LocalTargetWalk::processNode(
 // The target bucket has been obtained from reqID and set as the target of the walk.
 
 // This walk interprets what is otherwise the 'reqID' argument as the targetBucketIndex
-void LocalTargetWalk::resumeWalk(GenericTreeNode *node, State *state_, int chunk, int reqID, int activeWalkIndex){
+void LocalTargetWalk::resumeWalk(Tree::GenericTreeNode *node, State *state_, int chunk, int reqID, int activeWalkIndex){
 	DoubleWalkState *state = (DoubleWalkState *)state_;
 
     // initial target
 	int targetBucket = decodeReqID(reqID);
-	GenericTreeNode *source = (GenericTreeNode *)comp->getComputeEntity();
+	Tree::GenericTreeNode *source = (Tree::GenericTreeNode *)comp->getComputeEntity();
 	// first and last buckets beneath source
 	int startBucket, endBucket;
 	int prevBucket = -1;
 
 	// so that dummySource is changed if necessary, and source is left
 	// untouched.
-	GenericTreeNode *dummySource = source;
+	Tree::GenericTreeNode *dummySource = source;
 	ownerTP->getBucketsBeneathBounds(dummySource, startBucket, endBucket);
 
 	// clear all levels up to and including source
@@ -484,15 +484,15 @@ void LocalTargetWalk::resumeWalk(GenericTreeNode *node, State *state_, int chunk
 
 	int activeRung = comp->getActiveRung();
 	while(targetBucket < endBucket){
-		GenericTreeNode *targetNode = ownerTP->getBucket(targetBucket);
+		Tree::GenericTreeNode *targetNode = ownerTP->getBucket(targetBucket);
 		if(targetNode->rungs >= activeRung){
 			targetKey = targetNode->getKey();
-			GenericTreeNode *lca = ownerTP->getStartAncestor(targetBucket, prevBucket, source);
+			Tree::GenericTreeNode *lca = ownerTP->getStartAncestor(targetBucket, prevBucket, source);
 
 			int lcaLevel = lca->getLevel(lca->getKey());
 			dft(lca, state, chunk, targetBucket, (lcaLevel == level), activeWalkIndex, lcaLevel);
 
-			GenericTreeNode *lowestNode = state->lowestNode;
+			Tree::GenericTreeNode *lowestNode = state->lowestNode;
 			// start and end buckets beneath lowest node
 			int sL, eL;
 			ownerTP->getBucketsBeneathBounds(lowestNode, sL, eL);
@@ -531,7 +531,7 @@ const char *translations[] = {"",
                                  };
 
 /// @brief Interprete NodeType as string.
-const char *typeString(NodeType type){
+const char *typeString(Tree::NodeType type){
   CkAssert(type > 0 && type <= NUM_NODE_TYPES);
   return translations[type];
 }

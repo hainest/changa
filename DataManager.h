@@ -24,7 +24,7 @@ struct TreePieceDescriptor{
         Tree::GenericTreeNode *root;
 
 	TreePieceDescriptor(){}
-	TreePieceDescriptor(TreePiece *tp_, GenericTreeNode *r){
+	TreePieceDescriptor(TreePiece *tp_, Tree::GenericTreeNode *r){
 		treePiece = tp_;
                 root = r;
 	}
@@ -105,7 +105,7 @@ protected:
         // * or for each entry, get key, find bucket node in CM, DM or TPs and get number
         // for now, the former
 
-        std::map<NodeKey, int> cachedPartsOnGpu;
+        std::map<Tree::NodeKey, int> cachedPartsOnGpu;
         // local particles that have been copied to the gpu
         //std::map<NodeKey, int> localPartsOnGpu;
 
@@ -145,7 +145,7 @@ protected:
 	Tree::GenericTreeNode * root;
 	/// Table for nodes created by the DataManager to combine trees.
 	/// Kept track of here so we can delete them when done.
-	CkVec<GenericTreeNode *> nodeTable;
+	CkVec<Tree::GenericTreeNode *> nodeTable;
 
 	/// Number of chunks in which the tree was splitted during last combine operation
 	int oldNumChunks;
@@ -178,12 +178,12 @@ public:
         void serializeLocalTree();
 
 #ifdef GPU_LOCAL_TREE_WALK
-        void transformLocalTreeRecursive(GenericTreeNode *node, CkVec<CudaMultipoleMoments>& localMoments);
+        void transformLocalTreeRecursive(Tree::GenericTreeNode *node, CkVec<CudaMultipoleMoments>& localMoments);
 #endif //GPU_LOCAL_TREE_WALK
         
         // actual serialization methods
-        PendingBuffers *serializeRemoteChunk(GenericTreeNode *);
-	void serializeLocal(GenericTreeNode *);
+        PendingBuffers *serializeRemoteChunk(Tree::GenericTreeNode *);
+	void serializeLocal(Tree::GenericTreeNode *);
         void freeLocalTreeMemory();
         void freeRemoteChunkMemory(int chunk);
         void transferParticleVarsBack();
@@ -234,7 +234,7 @@ public:
           return localPartsOnGpu;
         }
         */
-        std::map<NodeKey, int> &getCachedPartsOnGpuTable(){
+        std::map<Tree::NodeKey, int> &getCachedPartsOnGpuTable(){
           return cachedPartsOnGpu;
         }
 #endif
@@ -254,7 +254,7 @@ public:
     void combineLocalTrees(CkReductionMsg *msg);
     void getChunks(int &num, Tree::NodeKey *&roots);
     inline Tree::GenericTreeNode *chunkRootToNode(const Tree::NodeKey k) {
-      NodeLookupType::iterator iter = chunkRootTable.find(k);
+      Tree::NodeLookupType::iterator iter = chunkRootTable.find(k);
       if (iter != chunkRootTable.end()) return iter->second;
       else return NULL;
     }
@@ -272,7 +272,7 @@ public:
     void resetReadOnly(Parameters param, const CkCallback &cb);
 
   public:
-  static Tree::GenericTreeNode *pickNodeFromMergeList(int n, GenericTreeNode **gtn, int &nUnresolved, int &pickedIndex);
+  static Tree::GenericTreeNode *pickNodeFromMergeList(int n, Tree::GenericTreeNode **gtn, int &nUnresolved, int &pickedIndex);
 };
 
 inline static void setBIconfig()

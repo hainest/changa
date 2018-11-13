@@ -51,7 +51,7 @@ class Orb3dCommon{
     int nextProc;
 
     // Greedy strategy to assign TreePieces to PEs on a node.
-    void orbPePartition(vector<Event> *events, vector<OrbObject> &tp, int node,
+    void orbPePartition(std::vector<Event> *events, std::vector<OrbObject> &tp, int node,
         BaseLB::LDStats *stats) {
 
       std::vector<PeInfo> peinfo;
@@ -100,8 +100,8 @@ class Orb3dCommon{
 /// @param nprocs Number of processors over which to partition the
 /// Events. N.B. if node_partition is true, then this is the number of nodes.
 /// @param tp Vector of TreePiece data.
-    void orbPartition(vector<Event> *events, OrientedBox<float> &box, int nprocs,
-        vector<OrbObject> & tp, BaseLB::LDStats *stats,
+    void orbPartition(std::vector<Event> *events, OrientedBox<float> &box, int nprocs,
+        std::vector<OrbObject> & tp, BaseLB::LDStats *stats,
         bool node_partition=false){
 
       ORB3DLB_NOTOPO_DEBUG("partition events %d %d %d nprocs %d\n", 
@@ -244,8 +244,8 @@ class Orb3dCommon{
         tp[ev.owner].partition = RIGHT_PARTITION;
       }
 
-      vector<Event> leftEvents[NDIMS];
-      vector<Event> rightEvents[NDIMS];
+      std::vector<Event> leftEvents[NDIMS];
+      std::vector<Event> rightEvents[NDIMS];
 
       for(int i = 0; i < NDIMS; i++){
         if(i == longestDim){ 
@@ -278,7 +278,7 @@ class Orb3dCommon{
       // next, reset the ownership information in the
       // OrbObjects, so that the next invocation may use
       // the same locations for its book-keeping
-      vector<Event> &eraseVec = events[longestDim];
+      std::vector<Event> &eraseVec = events[longestDim];
       for(int i = 0; i < numEvents; i++){
         Event &ev = eraseVec[i];
         CkAssert(ev.owner >= 0);
@@ -293,7 +293,7 @@ class Orb3dCommon{
       // left and right event subsets)
       for(int i = 0; i < NDIMS; i++){
         //events[i].free();
-        vector<Event>().swap(events[i]);
+        std::vector<Event>().swap(events[i]);
       }
       orbPartition(leftEvents,leftBox,nlprocs,tp, stats, node_partition);
       orbPartition(rightEvents,rightBox,nrprocs,tp, stats, node_partition);
@@ -305,7 +305,7 @@ class Orb3dCommon{
 /// @param numobjs Number of tree pieces to partition.
 /// @param stats Data from the load balancing framework.
 /// @param node_partition Are we partitioning on nodes.
-    void orbPrepare(vector<Event> *tpEvents, OrientedBox<float> &box, int
+    void orbPrepare(std::vector<Event> *tpEvents, OrientedBox<float> &box, int
     numobjs, BaseLB::LDStats * stats, bool node_partition=false){
 
       int nmig = stats->n_migrateobjs;
@@ -332,7 +332,7 @@ class Orb3dCommon{
 
       CkPrintf("[Orb3dLB_notopo] sorting\n");
       for(int i = 0; i < NDIMS; i++){
-        sort(tpEvents[i].begin(),tpEvents[i].end());
+        std::sort(tpEvents[i].begin(),tpEvents[i].end());
       }
 
       box.lesser_corner.x = tpEvents[XDIM][0].position;
@@ -467,7 +467,7 @@ class Orb3dCommon{
 
 #ifdef PRINT_LOAD_PERCENTILES
       double accumVar = 0;
-      vector<double> objectWallTimes;
+      std::vector<double> objectWallTimes;
       for(int i = 0; i < stats->count; i++){
         double wallTime = stats->procs[i].total_walltime;
         objectWallTimes.push_back(wallTime);
@@ -541,7 +541,7 @@ class Orb3dCommon{
 /// @param bgrp Background load on the right processors.
 /// @return Starting index of right partition.
 ///
-    int partitionRatioLoad(vector<Event> &events, float ratio, float bglp, float bgrp){
+    int partitionRatioLoad(std::vector<Event> &events, float ratio, float bglp, float bgrp){
 
       float approxBgPerEvent = (bglp + bgrp) / events.size();
       float totalLoad = bglp + bgrp;

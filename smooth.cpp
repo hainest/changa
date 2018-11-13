@@ -54,7 +54,7 @@ SmoothParams *globalSmoothParams;
  * a node, and its a bucket, then we check each particle with
  * bucketCompare().
  */
-int SmoothCompute::doWork(GenericTreeNode *node, // Node to test
+int SmoothCompute::doWork(Tree::GenericTreeNode *node, // Node to test
 			  TreeWalk *tw,
 			  State *state,
 			  int chunk,
@@ -63,7 +63,7 @@ int SmoothCompute::doWork(GenericTreeNode *node, // Node to test
 			  bool &didcomp, int awi)
 {
     // so that we have a quick return in case of empty nodes
-    if(node->getType() == Empty || node->getType() == CachedEmpty){
+    if(node->getType() == Tree::Empty || node->getType() == Tree::CachedEmpty){
 	return DUMP;
 	}
     if(!(node->iParticleTypes & params->iType)) {
@@ -91,7 +91,7 @@ int SmoothCompute::doWork(GenericTreeNode *node, // Node to test
 		continue;
 	    // particle is part of search tree.
 	    bucketCompare(tp, &part[i-node->firstParticle],
-			  (GenericTreeNode *) computeEntity,
+			  (Tree::GenericTreeNode *) computeEntity,
 			  tp->getParticles(),
 			  tp->decodeOffset(reqID),
                           state);
@@ -113,7 +113,7 @@ int SmoothCompute::doWork(GenericTreeNode *node, // Node to test
 		    continue;
 		// particle is part of search tree.
 		bucketCompare(tp, &part[i-node->firstParticle],
-			      (GenericTreeNode *) computeEntity,
+			      (Tree::GenericTreeNode *) computeEntity,
 			      tp->getParticles(),
 			      tp->decodeOffset(reqID),
                               state);
@@ -204,9 +204,9 @@ intersect(OrientedBox<cosmoType>& box, Vector3D<cosmoType> pos, cosmoType rsq)
  * Return true if we must open the node.
  */
 int KNearestSmoothCompute::openCriterion(TreePiece *ownerTP, 
-				  GenericTreeNode *node, // Node to test
+				  Tree::GenericTreeNode *node, // Node to test
 				  int reqID, State *state) {
-    GenericTreeNode *myNode = (GenericTreeNode *) computeEntity;
+	Tree::GenericTreeNode *myNode = (Tree::GenericTreeNode *) computeEntity;
     GravityParticle *particles = ownerTP->getParticles();
     Vector3D<cosmoType> offset = ownerTP->decodeOffset(reqID);
     NearNeighborState *nstate = (NearNeighborState *)state;
@@ -236,7 +236,7 @@ inline double sqr(double x) { return x*x; }
 
 void KNearestSmoothCompute::bucketCompare(TreePiece *ownerTP,
 				  GravityParticle *p,  // Particle to test
-				  GenericTreeNode *node, // bucket
+				  Tree::GenericTreeNode *node, // bucket
 				  GravityParticle *particles, // local
 							      // particle data
 				  Vector3D<double> offset,
@@ -297,7 +297,7 @@ void KNearestSmoothCompute::recvdParticlesFull(GravityParticle *part,
   CkAssert(num > 0);
   state->counterArrays[0][reqIDlist] -= num;
 
-  GenericTreeNode* reqnode = tp->bucketList[reqIDlist];
+  Tree::GenericTreeNode* reqnode = tp->bucketList[reqIDlist];
 
   for(int i=0;i<num;i++){
       if(!TYPETest(&part[i], params->iType))
@@ -389,7 +389,7 @@ template <class Tsmooth>
 void TreePiece::initBucketsSmooth(Tsmooth tSmooth) {
   tSmooth->nActive = 0;
   for (unsigned int j=0; j<numBuckets; ++j) {
-    GenericTreeNode* node = bucketList[j];
+    Tree::GenericTreeNode* node = bucketList[j];
 
     // TODO: active bounds may give a performance boost in the
     // multi-timstep regime.
@@ -446,7 +446,7 @@ void TreePiece::nextBucketSmooth(dummyMsg *msg){
 void KNearestSmoothCompute::initSmoothPrioQueue(int iBucket, State *state) 
 {
   // Prime the queues
-  GenericTreeNode *myNode = tp->bucketList[iBucket];
+  Tree::GenericTreeNode *myNode = tp->bucketList[iBucket];
   // state is passed in to function now. 
   NearNeighborState *nstate = (NearNeighborState *)state;
   
@@ -535,9 +535,9 @@ void KNearestSmoothCompute::initSmoothPrioQueue(int iBucket, State *state)
 #endif
       // Search for largest node containing enough particles.
       if(params->iType == TYPE_GAS) {
-          GenericTreeNode *parent = tp->root;
+          Tree::GenericTreeNode *parent = tp->root;
           int which = parent->whichChild(myNode->getKey());
-          GenericTreeNode *node = parent->getChildren(which);
+          Tree::GenericTreeNode *node = parent->getChildren(which);
           while(node->nSPH > nSmooth) {
               parent = node;
               which = parent->whichChild(myNode->getKey());
@@ -623,7 +623,7 @@ void KNearestSmoothCompute::initSmoothPrioQueue(int iBucket, State *state)
 void TreePiece::smoothBucketComputation() {
   twSmooth->init(sSmooth, this);
   int currentBucket = sSmoothState->currentBucket;
-  GenericTreeNode *myNode = bucketList[currentBucket];
+  Tree::GenericTreeNode *myNode = bucketList[currentBucket];
   sSmooth->init(myNode, activeRung, optSmooth);
   int bucketActive = 0;
   for(int j = myNode->firstParticle; j <= myNode->lastParticle; ++j) {
@@ -634,7 +634,7 @@ void TreePiece::smoothBucketComputation() {
   // start the tree walk from the tree built in the cache
   if (bucketActive) {
     for(int cr = 0; cr < numChunks; cr++){
-      GenericTreeNode *chunkRoot = dm->chunkRootToNode(prefetchRoots[cr]);
+      Tree::GenericTreeNode *chunkRoot = dm->chunkRootToNode(prefetchRoots[cr]);
       if(!chunkRoot){
         continue;
 	}
@@ -665,7 +665,7 @@ void TreePiece::smoothNextBucket() {
 }
 
 void NearNeighborState::finishBucketSmooth(int iBucket, TreePiece *tp) {
-  GenericTreeNode *node = tp->bucketList[iBucket];
+  Tree::GenericTreeNode *node = tp->bucketList[iBucket];
 
   if(counterArrays[0][iBucket] == 0) {
     tp->sSmooth->walkDone(this);
@@ -736,7 +736,7 @@ void TreePiece::finishSmoothWalk()
 }
 
 void KNearestSmoothCompute::walkDone(State *state) {
-  GenericTreeNode *node = (GenericTreeNode *) computeEntity;
+  Tree::GenericTreeNode *node = (Tree::GenericTreeNode *) computeEntity;
   GravityParticle *part = node->particlePointer;
 
   for(int i = node->firstParticle; i <= node->lastParticle; i++) {
@@ -803,9 +803,9 @@ State *ReSmoothCompute::getNewState(int nBucket){
  * Return true if we must open the node.
  */
 int ReSmoothCompute::openCriterion(TreePiece *ownerTP, 
-				  GenericTreeNode *node, ///< Node to test
+				  Tree::GenericTreeNode *node, ///< Node to test
 				  int reqID, State *state) {
-    GenericTreeNode *myNode = (GenericTreeNode *) computeEntity;
+	Tree::GenericTreeNode *myNode = (Tree::GenericTreeNode *) computeEntity;
     GravityParticle *particles = ownerTP->getParticles();
     Vector3D<cosmoType> offset = ownerTP->decodeOffset(reqID);
     
@@ -832,7 +832,7 @@ int ReSmoothCompute::openCriterion(TreePiece *ownerTP,
 
 void ReSmoothCompute::bucketCompare(TreePiece *ownerTP,
                                   GravityParticle *p,  ///< Particle to test
-                                  GenericTreeNode *node, ///< bucket
+                                  Tree::GenericTreeNode *node, ///< bucket
                                   GravityParticle *particles, ///< local
                                                               /// particle data
                                   Vector3D<double> offset,  ///< periodic offset
@@ -877,7 +877,7 @@ void ReSmoothCompute::recvdParticlesFull(GravityParticle *part,
   CkAssert(num > 0);
   state->counterArrays[0][reqIDlist] -= num;
 
-  GenericTreeNode* reqnode = tp->bucketList[reqIDlist];
+  Tree::GenericTreeNode* reqnode = tp->bucketList[reqIDlist];
 
   for(int i=0;i<num;i++){
       if(!TYPETest(&part[i], params->iType))
@@ -967,7 +967,7 @@ void TreePiece::reSmoothNextBucket() {
       return;
 
   // set bucket search quantities
-  GenericTreeNode *myNode = bucketList[currentBucket];
+  Tree::GenericTreeNode *myNode = bucketList[currentBucket];
   OrientedBox<double> bndSmoothAct; // bounding box for smoothActive particles
   double dKeyMaxBucket = 0.0;
   int bucketActive = 0;
@@ -989,7 +989,7 @@ void TreePiece::reSmoothNextBucket() {
 }
 
 void ReNearNeighborState::finishBucketSmooth(int iBucket, TreePiece *tp) {
-  GenericTreeNode *node = tp->bucketList[iBucket];
+  Tree::GenericTreeNode *node = tp->bucketList[iBucket];
 
   if(counterArrays[0][iBucket] == 0) {
       tp->sSmooth->walkDone(this);
@@ -1016,7 +1016,7 @@ void ReNearNeighborState::finishBucketSmooth(int iBucket, TreePiece *tp) {
 
 /// @brief execute SmoothParams::fcnSmooth() for all particles in the bucket.
 void ReSmoothCompute::walkDone(State *state) {
-  GenericTreeNode *node = (GenericTreeNode *) computeEntity;
+  Tree::GenericTreeNode *node = (Tree::GenericTreeNode *) computeEntity;
   GravityParticle *part = node->particlePointer;
 
   for(int i = node->firstParticle; i <= node->lastParticle; i++) {
@@ -1054,9 +1054,9 @@ State *MarkSmoothCompute::getNewState(int nBucket){
  * Return true if we must open the node.
  */
 int MarkSmoothCompute::openCriterion(TreePiece *ownerTP, 
-				  GenericTreeNode *node, // Node to test
+				  Tree::GenericTreeNode *node, // Node to test
 				  int reqID, State *state) {
-    GenericTreeNode *myNode = (GenericTreeNode *) computeEntity; // my bucket
+    Tree::GenericTreeNode *myNode = (Tree::GenericTreeNode *) computeEntity; // my bucket
     GravityParticle *particles = ownerTP->getParticles();
     Vector3D<cosmoType> offset = ownerTP->decodeOffset(reqID);
     
@@ -1078,7 +1078,7 @@ int MarkSmoothCompute::openCriterion(TreePiece *ownerTP,
  */
 void MarkSmoothCompute::bucketCompare(TreePiece *ownerTP,
 				  GravityParticle *p,  // Particle to test
-				  GenericTreeNode *node, ///< (local) bucket
+				  Tree::GenericTreeNode *node, ///< (local) bucket
 				  GravityParticle *particles, ///< local
 							      /// particle data
 				  Vector3D<double> offset,
@@ -1110,7 +1110,7 @@ void MarkSmoothCompute::recvdParticlesFull(GravityParticle *part,
   CkAssert(num > 0);
   state->counterArrays[0][reqIDlist] -= num;
 
-  GenericTreeNode* reqnode = tp->bucketList[reqIDlist];
+  Tree::GenericTreeNode* reqnode = tp->bucketList[reqIDlist];
 
   for(int i=0;i<num;i++){
       if(!TYPETest(&part[i], params->iType))
@@ -1202,7 +1202,7 @@ void TreePiece::markSmoothNextBucket() {
 }
 
 void MarkNeighborState::finishBucketSmooth(int iBucket, TreePiece *tp) {
-  GenericTreeNode *node = tp->bucketList[iBucket];
+  Tree::GenericTreeNode *node = tp->bucketList[iBucket];
 
   if(counterArrays[0][iBucket] == 0) {
       tp->sSmooth->walkDone(this);

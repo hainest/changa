@@ -48,8 +48,8 @@ void IntraNodeLBManager::finishedTPWork() {
   }
 }
 
-vector<int> IntraNodeLBManager::getOtherIdlePes() {
-  vector<int> idlepes;
+std::vector<int> IntraNodeLBManager::getOtherIdlePes() {
+  std::vector<int> idlepes;
   int nsize = CkNodeSize(CkMyNode());
   for (int i = 0; i < nsize; i++) {
     if (CpvAccessOther(tpGravDone, i) == 1 &&

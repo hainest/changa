@@ -3,8 +3,6 @@
 
 #include <vector>
 
-using std::vector;
-
 /// @brief Manage intranode work for ckLoop intra node work sharing.
 class IntraNodeLBManager : public CBase_IntraNodeLBManager {
 
@@ -18,7 +16,7 @@ class IntraNodeLBManager : public CBase_IntraNodeLBManager {
   void registerTP();
   void finishedTPWork();
 
-  vector<int> getOtherIdlePes();
+  std::vector<int> getOtherIdlePes();
 
  private:
   int total_tps_;
