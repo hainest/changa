@@ -25,6 +25,7 @@
 #include "hapi.h"
 #include "cuda_typedef.h"
 #include "cuda/intrinsics/shfl.hu"
+#include "cuda/intrinsics/voting.hu"
 
 #ifdef GPU_LOCAL_TREE_WALK
 #include "codes.h"
@@ -1304,7 +1305,7 @@ __global__ void gpuLocalTreeWalk(
                 }
               }
 
-              if (!__any(cond)) {
+              if (!any(cond)) {
                 continue;
               }
 
