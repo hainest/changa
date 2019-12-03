@@ -747,8 +747,6 @@ void TreePiecePartListDataTransferLocalSmallPhase(CudaRequest *data, CompactPart
         }
         gravityKernel->addBuffer(bufferHostBuffer, size, transfer, false, transfer);
 
-        ptr = (ParameterStruct *)gravityKernel->getUserData();
-
 	gravityKernel->setDeviceToHostCallback(data->cb);
 #ifdef HAPI_TRACE
 	gravityKernel->setTraceName("partGravityLocal");
